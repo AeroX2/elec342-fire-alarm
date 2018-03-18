@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\main.asm Mon Mar 19 00:08:11 2018
+AVRASM ver. 2.2.7  D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\main.asm Mon Mar 19 00:29:37 2018
 
 
 EQU  SIGNATURE_000 0000001e
@@ -696,8 +696,8 @@ EQU  TWIaddr      00000030
 EQU  SPMRaddr     00000032
 EQU  INT_VECTORS_SIZE 00000034
 CSEG start        00000000
-CSEG main         00000023
-EQU  SPEAKER_PORT 00000000
+CSEG main         00000050
+EQU  SPEAKER_PORT 00000001
 EQU  DELAY_1_SEC  0030d400
 EQU  DELAY_10     00007d00
 EQU  DELAY_5      00003e80
@@ -708,10 +708,18 @@ EQU  SOUND_STARTING_HERTZ 00004e20
 EQU  LCD_ADDRESS  00000027
 CSEG sound_reset  00000007
 CSEG sound_alarm  0000000a
-CSEG pwm_8x_50    00000032
-CSEG delay        0000002d
-CSEG LCD_INIT_SEQUENCE 00000019
-CSEG LCD_STARTUP_SEQUENCE 0000001c
-CSEG lcd_init     0000001f
-CSEG lcd_print    00000022
-CSEG loop         0000002c
+CSEG pwm_8x_50    0000005b
+CSEG delay        00000056
+CSEG error        00000019
+CSEG i2c_wait     0000001a
+CSEG i2c_error_check 00000020
+CSEG i2c_start    00000026
+CSEG i2c_stop     0000002c
+CSEG i2c_slave_write 0000002f
+CSEG i2c_data_write 00000035
+CSEG i2c_send     0000003a
+CSEG LCD_INIT_SEQUENCE 00000046
+CSEG LCD_STARTUP_SEQUENCE 00000049
+CSEG lcd_init     0000004c
+CSEG lcd_print    0000004f
+CSEG loop         00000055

@@ -6,7 +6,7 @@
 ;
 
 ; Port numbers
-.equ SPEAKER_PORT = 0 ; PORTB, line 8
+.equ SPEAKER_PORT = 1 ; PORTB, line 9 PWM
 
 ; Delay amounts
 .equ DELAY_1_SEC = (16000000/4)*0.8

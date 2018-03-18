@@ -27,15 +27,23 @@
  </OUTPUT_FILES>
  <LABELS>
   <start><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\main.asm</FILE><LINE>9</LINE></start>
-  <main><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\main.asm</FILE><LINE>25</LINE></main>
+  <main><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\main.asm</FILE><LINE>24</LINE></main>
   <sound_reset><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\sound.asm</FILE><LINE>8</LINE></sound_reset>
   <sound_alarm><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\sound.asm</FILE><LINE>13</LINE></sound_alarm>
-  <pwm_8x_50><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\main.asm</FILE><LINE>55</LINE></pwm_8x_50>
-  <delay><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\main.asm</FILE><LINE>47</LINE></delay>
+  <pwm_8x_50><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\main.asm</FILE><LINE>51</LINE></pwm_8x_50>
+  <delay><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\main.asm</FILE><LINE>43</LINE></delay>
+  <error><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\i2c.asm</FILE><LINE>8</LINE></error>
+  <i2c_wait><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\i2c.asm</FILE><LINE>11</LINE></i2c_wait>
+  <i2c_error_check><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\i2c.asm</FILE><LINE>17</LINE></i2c_error_check>
+  <i2c_start><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\i2c.asm</FILE><LINE>24</LINE></i2c_start>
+  <i2c_stop><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\i2c.asm</FILE><LINE>30</LINE></i2c_stop>
+  <i2c_slave_write><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\i2c.asm</FILE><LINE>35</LINE></i2c_slave_write>
+  <i2c_data_write><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\i2c.asm</FILE><LINE>41</LINE></i2c_data_write>
+  <i2c_send><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\i2c.asm</FILE><LINE>46</LINE></i2c_send>
   <LCD_INIT_SEQUENCE><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\lcd.asm</FILE><LINE>8</LINE></LCD_INIT_SEQUENCE>
   <LCD_STARTUP_SEQUENCE><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\lcd.asm</FILE><LINE>11</LINE></LCD_STARTUP_SEQUENCE>
   <lcd_init><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\lcd.asm</FILE><LINE>16</LINE></lcd_init>
   <lcd_print><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\lcd.asm</FILE><LINE>22</LINE></lcd_print>
-  <loop><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\main.asm</FILE><LINE>40</LINE></loop>
+  <loop><FILE>D:\Users\James Ridey\Documents\git\elec342-fire-alarm\FireAlarm\FireAlarm\main.asm</FILE><LINE>36</LINE></loop>
  </LABELS>
 </ASSEMBLER_INFO>

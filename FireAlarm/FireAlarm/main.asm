@@ -11,11 +11,10 @@ start:
 
 .nolist
 .include "constants.asm"
-;.include "mcp23s17.asm"
 .include "sound.asm"
 ;.include "state.asm"
-;.include "i2c.asm"
-;.include "lcd.asm"
+.include "i2c.asm"
+.include "lcd.asm"
 ;.include "spi.asm"
 .list
 
@@ -29,11 +28,8 @@ main:
 	out	SPL,r16
 	sbi	DDRB,SPEAKER_PORT
 
-	sbi	DDRB,1
-	sbi	DDRB,2
-
 	;Run init procedures
-	call lcd_init
+	;call lcd_init
 	;call sound_reset
 
 	;Main loop
