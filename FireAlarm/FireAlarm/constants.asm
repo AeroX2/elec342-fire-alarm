@@ -23,4 +23,4 @@
 .equ LCD_ADDRESS = 0x27
 
 
-.db "Hello World"
+.db "Hello World",0x00

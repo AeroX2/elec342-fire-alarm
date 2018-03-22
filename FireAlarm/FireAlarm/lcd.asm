@@ -6,7 +6,7 @@
 ;
 
 LCD_INIT_SEQUENCE:
-.db 0x00,0x30,0x30,0x30,0x20 ; Repeatedly try to set to 4 bit mode
+.db 0x00,0x30,0x30,0x30,0x20,0x00 ; Repeatedly try to set to 4 bit mode
 
 LCD_STARTUP_SEQUENCE:
 .db 0x20,0x80 ; Set 2 line, 5x8 dot display
@@ -14,9 +14,11 @@ LCD_STARTUP_SEQUENCE:
 .db 0x00,0x10 ; Entry mode, left to right, shift every character input
 
 lcd_init:
+	call i2c_init
+
 	ldi r16,LCD_ADDRESS
-	ldi r17,0xFF
-	;call i2c_send
+	ldi r17,0x00
+	call i2c_send
 	ret
 
 lcd_print:
