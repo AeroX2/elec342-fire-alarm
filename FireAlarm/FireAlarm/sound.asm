@@ -13,6 +13,7 @@ sound_reset:
 	ldi sound_loop,SOUND_LOOP_COUNT
 	ldi low_hertz,LOW(SOUND_STARTING_HERTZ)
 	ldi high_hertz,HIGH(SOUND_STARTING_HERTZ)
+	;Fall Through
 
 sound_evac:
 	;Decrease until 0 and then reset

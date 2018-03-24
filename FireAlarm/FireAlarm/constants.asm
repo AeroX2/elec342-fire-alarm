@@ -14,10 +14,10 @@
 .def low_hertz = r21
 .def high_hertz = r22
 
-.def debounce_0 = r23
-.def debounce_1 = r24
-.def debounce_2 = r25
-.def debounce_3 = r26
+.def mem0l = r26
+.def mem0h = r27
+
+.equ DEBOUNCE_MEMORY_LOCATION = 0x100
 
 ; Port numbers
 .equ SPEAKER_PORT = 1 ; PORTB, line 9 PWM

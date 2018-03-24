@@ -28,11 +28,11 @@ main:
 	out	SPL,temp0
 
 	;Pull inputs high
-	ldi temp0,0b0000_0100
+	ldi temp0,0b1111_1111
 	out PORTD,temp0
 
 	;Configure as outputs
-	ldi temp0,0b0000_0001
+	ldi temp0,0b0000_1111
 	out DDRB,temp0
 
 	;sbi PORTB,0
@@ -45,7 +45,7 @@ main:
 	;Main loop
 	loop:
 		;call sound_alarm
-		call state_poll_buttons
+		call state_update
 	rjmp loop
 
 ; Delay by the number of instructions in r0/r1/r2 as a 24 bit value * 4
