@@ -16,8 +16,8 @@ LCD_STARTUP_SEQUENCE:
 lcd_init:
 	call i2c_init
 
-	ldi r16,LCD_ADDRESS
-	ldi r17,0x00
+	ldi temp0,LCD_ADDRESS
+	ldi temp1,0x00
 	call i2c_send
 	ret
 

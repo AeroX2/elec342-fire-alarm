@@ -10,27 +10,27 @@ sound_init:
 	ret
 
 sound_reset:
-	ldi r20,SOUND_LOOP
-	ldi r21,LOW(SOUND_STARTING_HERTZ)
-	ldi r22,HIGH(SOUND_STARTING_HERTZ)
+	ldi sound_loop,SOUND_LOOP_COUNT
+	ldi low_hertz,LOW(SOUND_STARTING_HERTZ)
+	ldi high_hertz,HIGH(SOUND_STARTING_HERTZ)
 
-sound_alarm:
+sound_evac:
 	;Decrease until 0 and then reset
-	dec r20
-	tst r20
+	dec sound_loop
+	tst sound_loop
 	breq sound_reset
 
-	mov r16,r21
-	mov r17,r22
+	mov temp0,low_hertz
+	mov temp1,high_hertz
 	call pwm_8x_50
 
-	subi r21,60
-	sbci r22,0
+	subi low_hertz,60
+	sbci high_hertz,0
 
 	;Delay for 10 milliseconds
-	ldi r16,LOW(DELAY_10)
-	ldi r17,HIGH(DELAY_10)
-	ldi r18,0
+	ldi temp0,LOW(DELAY_10)
+	ldi temp1,HIGH(DELAY_10)
+	ldi temp2,0
 	call delay
 
 	ret
@@ -38,18 +38,18 @@ sound_alarm:
 ; Delay by the value of the registers in r0/r1/r2 and pass that to the Arduino internal timer
 pwm_8x_50:
 
-	sts OCR1BH,r17
-	sts OCR1BL,r16
+	sts OCR1BH,temp1
+	sts OCR1BL,temp0
 
 	;Set duty cycle to 50%
-	lsr r17
-	ror r16
-	sts OCR1AH,r17
-	sts OCR1AL,r16
+	lsr temp1
+	ror temp0
+	sts OCR1AH,temp1
+	sts OCR1AL,temp0
 
-	ldi r16,(1<<COM1A0)|(1<<COM1B1)|(1<<WGM11)|(1<<WGM10);0b1010_0011 
-	sts TCCR1A,r16 ;Toggle OC1 pin and use Fast PWM with wave generation
-	ldi r16,(1<<WGM13)|(1<<WGM12)|(1<<CS11)
-	sts TCCR1B,r16 ;8x prescaling, starts the timer
+	ldi temp0,(1<<COM1A0)|(1<<COM1B1)|(1<<WGM11)|(1<<WGM10);0b1010_0011 
+	sts TCCR1A,temp0 ;Toggle OC1 pin and use Fast PWM with wave generation
+	ldi temp0,(1<<WGM13)|(1<<WGM12)|(1<<CS11)
+	sts TCCR1B,temp0 ;8x prescaling, starts the timer
 
 	ret

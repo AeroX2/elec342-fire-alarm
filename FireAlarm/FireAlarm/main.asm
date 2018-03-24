@@ -5,16 +5,16 @@
 ; Author : James Ridey
 ;
 .org 0x0000
-
-start:
 	rjmp main
+.org 0x000A
+	rjmp state_interrupt
 
 .nolist
 .include "constants.asm"
 .include "sound.asm"
-;.include "state.asm"
-.include "i2c.asm"
-.include "lcd.asm"
+.include "state.asm"
+;.include "i2c.asm"
+;.include "lcd.asm"
 ;.include "spi.asm"
 .list
 
@@ -22,30 +22,38 @@ start:
 ; Initialize LCD display
 ; Start the main loop
 main:
-	ldi	r16,high(RAMEND)
-	out	SPH,r16
-	ldi	r16,low(RAMEND)
-	out	SPL,r16
+	ldi	temp0,high(RAMEND)
+	out	SPH,temp0
+	ldi	temp0,low(RAMEND)
+	out	SPL,temp0
 
-	ldi r16,0xFF
-	out DDRC,r16
-	out PORTC,r16
+	;Pull inputs high
+	ldi temp0,0b0000_0100
+	out PORTD,temp0
+
+	;Configure as outputs
+	ldi temp0,0b0000_0001
+	out DDRB,temp0
+
+	;sbi PORTB,0
 
 	;Run init procedures
 	;call sound_init
-	call lcd_init
+	;call lcd_init
+	call state_init
 
 	;Main loop
 	loop:
 		;call sound_alarm
+		call state_poll_buttons
 	rjmp loop
 
 ; Delay by the number of instructions in r0/r1/r2 as a 24 bit value * 4
 ; on a 1 MHz machine a value of 250,000 is 1 second: 0x03 0xd0 0x90
 ; on a 16 MHz machine a value of (16,000,000/4) = 4,000,000 is 1 second: 0x3d 0x09 0x00
 delay:
-	subi r16,1
-	sbci r17,0
-	sbci r18,0
+	subi temp0,1
+	sbci temp1,0
+	sbci temp2,0
 	brne delay
 	ret
