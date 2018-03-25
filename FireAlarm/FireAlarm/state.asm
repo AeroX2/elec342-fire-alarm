@@ -81,7 +81,6 @@ state_machine_update:
 	set_state_normal:
 		;TODO Call LCD
 		call sound_clear
-		;clr temp1
 
 	state_normal:
 		cbr temp1,0b1100_0000
@@ -95,6 +94,10 @@ state_machine_update:
 		;Set state to alert
 		sbrc temp2,0
 		rjmp set_state_alert
+				
+		;Reset switch pressed
+		sbrc temp0,RESET_SWITCH
+		clr state
 
 		rjmp end
 
@@ -110,8 +113,8 @@ state_machine_update:
 		rjmp set_state_evacuate
 
 		;Isolate switch pressed
-		;sbrc temp0,ISOLATE_SWITCH
-		;rjmp set_state_isolate
+		sbrc temp0,ISOLATE_SWITCH
+		rjmp set_state_isolate
 
 		;Reset switch pressed
 		sbrc temp0,RESET_SWITCH
@@ -137,6 +140,7 @@ state_machine_update:
 		rjmp end
 
 	set_state_isolate:
+		call sound_clear
 		;TODO Call LCD
 	state_isolate:
 		cbr temp1,0b1100_0000

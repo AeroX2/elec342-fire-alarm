@@ -41,7 +41,7 @@
 ;TODO
 ;Evac alarm sound
 .equ SOUND_LOOP_COUNT = 200
-.equ SOUND_ALERT_HERTZ = 5000 ;This value is the top, f = cpu_f / (2*prescale*top) 
+.equ SOUND_ALERT_HERTZ = 10000 ;This value is the top, f = cpu_f / (2*prescale*top) 
 .equ SOUND_EVACUATE_HERTZ = 20000 ;This value is the top, f = cpu_f / (2*prescale*top) 
 
 ;LCD Display
