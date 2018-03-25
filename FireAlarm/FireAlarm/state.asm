@@ -18,14 +18,20 @@ state_init:
 	ret
 
 state_update:
-	;Fall Through
+	push temp0
+	push temp1
+	push temp2
+	push temp3
+	push loop
+	;Fall through
 state_poll_buttons:	
+	;TODO This debouncing code doesn't work
 	clr temp0 ;Hold button pressed state
 	in temp1,PIND ;Hold pin state
 	ldi temp2,0b1111_1110 ;Hold constant compare value
 	
-	ldi mem0l,LOW(DEBOUNCE_MEMORY_LOCATION)
-	ldi mem0h,HIGH(DEBOUNCE_MEMORY_LOCATION)
+	ldi XL,LOW(DEBOUNCE_MEMORY_LOCATION)
+	ldi XH,HIGH(DEBOUNCE_MEMORY_LOCATION)
 	debounce_loop:
 		;Load debounce state
 		ld temp3,X
@@ -47,32 +53,125 @@ state_poll_buttons:
 		st X+,temp3
 
 		;Loop 8 times
-		inc mem0l
-		cpi mem0l,DEBOUNCE_MEMORY_LOCATION+8*2
+		inc XL
+		cpi XL,LOW(DEBOUNCE_MEMORY_LOCATION+8*2)
 	brlt debounce_loop
 	;Fall Through
 state_machine_update:
-	sbrc temp0,0
-	rjmp toggle
-	sbrc temp0,1
-	rjmp toggle
-	sbrc temp0,2
-	rjmp toggle
-	sbrc temp0,3
-	rjmp toggle
-	rjmp done
+	clr loop ;Loop counter holder
+	clr temp1 ;Current state holder
+	mov temp2,temp0 ;Current button
 
-	toggle:
-	in temp0,PORTB
-	ldi temp1,1
-	eor temp0,temp1
-	out PORTB,temp0
+	machine_loop:
+	;Shift the state to write
+	lsr temp1
+	lsr temp1
 
-	done:
+	mov temp3,state
+	andi temp3,0b0000_0011
+	cpi temp3,NORMAL
+	breq state_normal
+	cpi temp3,ALERT
+	breq state_alert
+	cpi temp3,EVACUATE
+	breq state_evacuate
+	cpi temp3,ISOLATE
+	breq state_isolate
+
+	set_state_normal:
+		;TODO Call LCD
+		call sound_clear
+		;clr temp1
+
+	state_normal:
+		cbr temp1,0b1100_0000
+		ori temp1,(NORMAL<<6)
+
+		;Emergency switch pressed
+		;sbrc temp0,EMERGENCY_SWITCH
+		;rjmp set_state_evacuate
+
+		;If a button has been pressed
+		;Set state to alert
+		sbrc temp2,0
+		rjmp set_state_alert
+
+		rjmp end
+
+	set_state_alert:
+		;TODO Call LCD
+	state_alert:
+		cbr temp1,0b1100_0000
+		ori temp1,(ALERT<<6)
+		call sound_alert
+
+		;Emergency switch pressed
+		sbrc temp0,EMERGENCY_SWITCH
+		rjmp set_state_evacuate
+
+		;Isolate switch pressed
+		;sbrc temp0,ISOLATE_SWITCH
+		;rjmp set_state_isolate
+
+		;Reset switch pressed
+		sbrc temp0,RESET_SWITCH
+		rjmp set_state_normal
+
+		rjmp end
+
+	set_state_evacuate:
+		;TODO Call LCD
+	state_evacuate:
+		cbr temp1,0b1100_0000
+		ori temp1,(EVACUATE<<6)
+		call sound_evacuate
+		
+		;Isolate switch pressed
+		sbrc temp0,ISOLATE_SWITCH
+		rjmp set_state_isolate
+
+		;Reset switch pressed
+		sbrc temp0,RESET_SWITCH
+		rjmp set_state_normal
+
+		rjmp end
+
+	set_state_isolate:
+		;TODO Call LCD
+	state_isolate:
+		cbr temp1,0b1100_0000
+		ori temp1,(ISOLATE<<6)
+
+		;Reset switch pressed
+		sbrc temp0,RESET_SWITCH
+		rjmp set_state_normal
+
+		;Uneeded rjmp end
+	end:
+
+	;Shift the state to read
+	lsr state
+	lsr state
+	;Shift the button pressed to read
+	lsr temp2
+
+	;Loop
+	inc loop
+	cpi loop,BUILDINGS
+	brlt machine_loop
+
+	;Store the final state
+	mov state,temp1
+
+	pop loop
+	pop temp3
+	pop temp2
+	pop temp1
+	pop temp0
 	ret
 
 state_interrupt:
 	;TODO Wake out of sleep
-	;TODO Disable pin interrupts
+	;cli
 	reti
 

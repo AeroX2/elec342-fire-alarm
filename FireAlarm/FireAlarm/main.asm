@@ -28,25 +28,23 @@ main:
 	out	SPL,temp0
 
 	;Pull inputs high
-	ldi temp0,0b1111_1111
+	ldi temp0,0b0111_1111
 	out PORTD,temp0
 
 	;Configure as outputs
-	ldi temp0,0b0000_1111
+	ldi temp0,0b0011_1110
 	out DDRB,temp0
 
 	;sbi PORTB,0
 
 	;Run init procedures
-	;call sound_init
 	;call lcd_init
 	call state_init
 
 	;Main loop
-	loop:
-		;call sound_alarm
+	main_loop:
 		call state_update
-	rjmp loop
+	rjmp main_loop
 
 ; Delay by the number of instructions in r0/r1/r2 as a 24 bit value * 4
 ; on a 1 MHz machine a value of 250,000 is 1 second: 0x03 0xd0 0x90
