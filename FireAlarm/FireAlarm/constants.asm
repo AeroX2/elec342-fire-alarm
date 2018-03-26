@@ -45,7 +45,7 @@
 .equ SOUND_EVACUATE_HERTZ = 20000 ;This value is the top, f = cpu_f / (2*prescale*top) 
 
 ;LCD Display
-.equ LCD_ADDRESS = 0x27
+.equ LCD_ADDRESS = 0x4E
 alert_message:
 .db "ALERT",0
 evac_message:

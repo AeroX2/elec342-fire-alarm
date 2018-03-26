@@ -4,17 +4,18 @@
 ; Created: 12/03/2018
 ; Author : James Ridey
 ;
+
 .org 0x0000
 	rjmp main
-.org 0x000A
-	rjmp state_interrupt
+;.org 0x000A
+	;rjmp state_interrupt
 
 .nolist
 .include "constants.asm"
-.include "sound.asm"
-.include "state.asm"
-;.include "i2c.asm"
-;.include "lcd.asm"
+;.include "sound.asm"
+;.include "state.asm"
+.include "i2c.asm"
+.include "lcd.asm"
 ;.include "spi.asm"
 .list
 
@@ -38,12 +39,12 @@ main:
 	;sbi PORTB,0
 
 	;Run init procedures
-	;call lcd_init
-	call state_init
+	call lcd_init
+	;call state_init
 
 	;Main loop
 	main_loop:
-		call state_update
+		;call state_update
 	rjmp main_loop
 
 ; Delay by the number of instructions in r0/r1/r2 as a 24 bit value * 4
