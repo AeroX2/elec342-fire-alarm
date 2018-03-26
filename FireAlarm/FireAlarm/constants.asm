@@ -15,6 +15,7 @@
 .def low_hertz = r22
 .def high_hertz = r23
 .def state = r24
+.def alert_count = r25
 
 ; Delay amounts
 .equ DELAY_1_SEC = (16000000/4); *0.8
@@ -46,7 +47,9 @@
 
 ;LCD Display
 .equ LCD_ADDRESS = 0x4E
-alert_message:
-.db "ALERT",0
-evac_message:
-.db "EVACUATE",0,0
+NORMAL_MESSAGE:
+.db "NORMAL: All good",0,0
+ALERT_MESSAGE:
+.db "ALERT: Sector _",0
+EVACUATE_MESSAGE:
+.db "EVACUATE! EVAC!",0

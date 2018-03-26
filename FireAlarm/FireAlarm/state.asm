@@ -6,6 +6,8 @@
 ;
 
 state_init:
+	push temp0
+
 	; Enable interupts on PCMSK2
 	ldi temp0,0b0000_0100
 	sts PCICR,temp0
@@ -14,7 +16,10 @@ state_init:
 	ldi temp0,0b0000_1111
 	sts PCMSK2,temp0
 
+	;Enable global interupts
 	sei
+
+	pop temp0
 	ret
 
 state_update:
@@ -24,7 +29,7 @@ state_update:
 	push temp3
 	push loop
 	;Fall through
-state_poll_buttons:	
+_state_poll_buttons:	
 	;TODO This debouncing code doesn't work
 	clr temp0 ;Hold button pressed state
 	in temp1,PIND ;Hold pin state
@@ -57,12 +62,31 @@ state_poll_buttons:
 		cpi XL,LOW(DEBOUNCE_MEMORY_LOCATION+8*2)
 	brlt debounce_loop
 	;Fall Through
-state_machine_update:
+_state_machine_update:
 	clr loop ;Loop counter holder
 	clr temp1 ;Current state holder
 	mov temp2,temp0 ;Current button
 
-	machine_loop:
+	_machine_loop:
+
+	call _state_machine_jump_table
+
+	;Loop 4 times for each sensor
+	inc loop
+	cpi loop,BUILDINGS
+	brlt _machine_loop
+
+	;Store the final state
+	mov state,temp1
+
+	pop loop
+	pop temp3
+	pop temp2
+	pop temp1
+	pop temp0
+	ret
+
+_state_machine_jump_table:
 	;Shift the state to write
 	lsr temp1
 	lsr temp1
@@ -70,19 +94,27 @@ state_machine_update:
 	mov temp3,state
 	andi temp3,0b0000_0011
 	cpi temp3,NORMAL
-	breq state_normal
+	breq _state_normal
 	cpi temp3,ALERT
-	breq state_alert
+	breq _state_alert
 	cpi temp3,EVACUATE
-	breq state_evacuate
+	breq _state_evacuate
 	cpi temp3,ISOLATE
-	breq state_isolate
+	breq _state_isolate
 
-	set_state_normal:
-		;TODO Call LCD
+	_set_state_normal:
+		push temp0
+		push temp1
+		ldi temp0,LOW(NORMAL_MESSAGE*2)
+		ldi temp1,HIGH(NORMAL_MESSAGE*2)
+		call lcd_print
+		pop temp1
+		pop temp0
+
+		;sbrs PORTB,4
+
 		call sound_clear
-
-	state_normal:
+	_state_normal:
 		cbr temp1,0b1100_0000
 		ori temp1,(NORMAL<<6)
 
@@ -93,7 +125,7 @@ state_machine_update:
 		;If a button has been pressed
 		;Set state to alert
 		sbrc temp2,0
-		rjmp set_state_alert
+		rjmp _set_state_alert
 				
 		;Reset switch pressed
 		sbrc temp0,RESET_SWITCH
@@ -101,54 +133,76 @@ state_machine_update:
 
 		rjmp end
 
-	set_state_alert:
-		;TODO Call LCD
-	state_alert:
+	_set_state_alert:
+		;TODO PORTB led for alert
+		;TODO Display which sectors are in alert
+		push temp0
+		push temp1
+		ldi temp0,LOW(ALERT_MESSAGE*2)
+		ldi temp1,HIGH(ALERT_MESSAGE*2)
+		call lcd_print
+		pop temp1
+		pop temp0
+	_state_alert:
 		cbr temp1,0b1100_0000
 		ori temp1,(ALERT<<6)
 		call sound_alert
 
 		;Emergency switch pressed
 		sbrc temp0,EMERGENCY_SWITCH
-		rjmp set_state_evacuate
+		rjmp _set_state_evacuate
 
 		;Isolate switch pressed
 		sbrc temp0,ISOLATE_SWITCH
-		rjmp set_state_isolate
+		rjmp _set_state_isolate
 
 		;Reset switch pressed
 		sbrc temp0,RESET_SWITCH
-		rjmp set_state_normal
+		rjmp _set_state_normal
 
 		rjmp end
 
-	set_state_evacuate:
-		;TODO Call LCD
-	state_evacuate:
+	_set_state_evacuate:
+		;TODO PORTB led for evac?
+		push temp0
+		push temp1
+		ldi temp0,LOW(EVACUATE_MESSAGE*2)
+		ldi temp1,HIGH(EVACUATE_MESSAGE*2)
+		call lcd_print
+		pop temp1
+		pop temp0
+	_state_evacuate:
 		cbr temp1,0b1100_0000
 		ori temp1,(EVACUATE<<6)
 		call sound_evacuate
 		
 		;Isolate switch pressed
 		sbrc temp0,ISOLATE_SWITCH
-		rjmp set_state_isolate
+		rjmp _set_state_isolate
 
 		;Reset switch pressed
 		sbrc temp0,RESET_SWITCH
-		rjmp set_state_normal
+		rjmp _set_state_normal
 
 		rjmp end
 
-	set_state_isolate:
+	_set_state_isolate:
+		;TODO Display which sectors are isolated
+		push temp0
+		push temp1
+		ldi temp0,LOW(NORMAL_MESSAGE*2)
+		ldi temp1,HIGH(NORMAL_MESSAGE*2)
+		call lcd_print
+		pop temp1
+		pop temp0
 		call sound_clear
-		;TODO Call LCD
-	state_isolate:
+	_state_isolate:
 		cbr temp1,0b1100_0000
 		ori temp1,(ISOLATE<<6)
 
 		;Reset switch pressed
 		sbrc temp0,RESET_SWITCH
-		rjmp set_state_normal
+		rjmp _set_state_normal
 
 		;Uneeded rjmp end
 	end:
@@ -159,19 +213,6 @@ state_machine_update:
 	;Shift the button pressed to read
 	lsr temp2
 
-	;Loop
-	inc loop
-	cpi loop,BUILDINGS
-	brlt machine_loop
-
-	;Store the final state
-	mov state,temp1
-
-	pop loop
-	pop temp3
-	pop temp2
-	pop temp1
-	pop temp0
 	ret
 
 state_interrupt:
