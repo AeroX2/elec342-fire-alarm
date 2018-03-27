@@ -68,16 +68,32 @@ _state_machine_update:
 	mov temp2,temp0 ;Current button
 
 	_machine_loop:
+		rcall _state_machine_jump_table
 
-	call _state_machine_jump_table
-
-	;Loop 4 times for each sensor
-	inc loop
-	cpi loop,BUILDINGS
+		;Loop 4 times for each sensor
+		inc loop
+		cpi loop,BUILDINGS
 	brlt _machine_loop
 
 	;Store the final state
 	mov state,temp1
+
+	;Reset switch pressed
+	sbrs temp0,RESET_SWITCH
+	rjmp test_end
+
+	push temp0
+	push temp1
+	ldi temp0,LOW(NORMAL_MESSAGE*2)
+	ldi temp1,HIGH(NORMAL_MESSAGE*2)
+	rcall lcd_print
+	pop temp1
+	pop temp0
+
+	rcall sound_clear
+	clr state
+
+	test_end:
 
 	pop loop
 	pop temp3
@@ -94,116 +110,25 @@ _state_machine_jump_table:
 	mov temp3,state
 	andi temp3,0b0000_0011
 	cpi temp3,NORMAL
-	breq _state_normal
+	breq _state_normal_jump
 	cpi temp3,ALERT
-	breq _state_alert
+	breq _state_alert_jump
 	cpi temp3,EVACUATE
-	breq _state_evacuate
+	breq _state_evacuate_jump
 	cpi temp3,ISOLATE
-	breq _state_isolate
+	breq _state_isolate_jump
 
-	_set_state_normal:
-		push temp0
-		push temp1
-		ldi temp0,LOW(NORMAL_MESSAGE*2)
-		ldi temp1,HIGH(NORMAL_MESSAGE*2)
-		call lcd_print
-		pop temp1
-		pop temp0
-
-		;sbrs PORTB,4
-
-		call sound_clear
-	_state_normal:
-		cbr temp1,0b1100_0000
-		ori temp1,(NORMAL<<6)
-
-		;Emergency switch pressed
-		;sbrc temp0,EMERGENCY_SWITCH
-		;rjmp set_state_evacuate
-
-		;If a button has been pressed
-		;Set state to alert
-		sbrc temp2,0
-		rjmp _set_state_alert
-				
-		;Reset switch pressed
-		sbrc temp0,RESET_SWITCH
-		clr state
-
+	_state_normal_jump:
+		rcall _state_normal
 		rjmp end
-
-	_set_state_alert:
-		;TODO PORTB led for alert
-		;TODO Display which sectors are in alert
-		push temp0
-		push temp1
-		ldi temp0,LOW(ALERT_MESSAGE*2)
-		ldi temp1,HIGH(ALERT_MESSAGE*2)
-		call lcd_print
-		pop temp1
-		pop temp0
-	_state_alert:
-		cbr temp1,0b1100_0000
-		ori temp1,(ALERT<<6)
-		call sound_alert
-
-		;Emergency switch pressed
-		sbrc temp0,EMERGENCY_SWITCH
-		rjmp _set_state_evacuate
-
-		;Isolate switch pressed
-		sbrc temp0,ISOLATE_SWITCH
-		rjmp _set_state_isolate
-
-		;Reset switch pressed
-		sbrc temp0,RESET_SWITCH
-		rjmp _set_state_normal
-
+	_state_alert_jump:
+		rcall _state_alert
 		rjmp end
-
-	_set_state_evacuate:
-		;TODO PORTB led for evac?
-		push temp0
-		push temp1
-		ldi temp0,LOW(EVACUATE_MESSAGE*2)
-		ldi temp1,HIGH(EVACUATE_MESSAGE*2)
-		call lcd_print
-		pop temp1
-		pop temp0
-	_state_evacuate:
-		cbr temp1,0b1100_0000
-		ori temp1,(EVACUATE<<6)
-		call sound_evacuate
-		
-		;Isolate switch pressed
-		sbrc temp0,ISOLATE_SWITCH
-		rjmp _set_state_isolate
-
-		;Reset switch pressed
-		sbrc temp0,RESET_SWITCH
-		rjmp _set_state_normal
-
+	_state_evacuate_jump:
+		rcall _state_evacuate
 		rjmp end
-
-	_set_state_isolate:
-		;TODO Display which sectors are isolated
-		push temp0
-		push temp1
-		ldi temp0,LOW(NORMAL_MESSAGE*2)
-		ldi temp1,HIGH(NORMAL_MESSAGE*2)
-		call lcd_print
-		pop temp1
-		pop temp0
-		call sound_clear
-	_state_isolate:
-		cbr temp1,0b1100_0000
-		ori temp1,(ISOLATE<<6)
-
-		;Reset switch pressed
-		sbrc temp0,RESET_SWITCH
-		rjmp _set_state_normal
-
+	_state_isolate_jump:
+		rcall _state_isolate
 		;Uneeded rjmp end
 	end:
 
@@ -212,6 +137,108 @@ _state_machine_jump_table:
 	lsr state
 	;Shift the button pressed to read
 	lsr temp2
+
+	ret
+
+_set_state_normal:
+	push temp0
+	push temp1
+	ldi temp0,LOW(NORMAL_MESSAGE*2)
+	ldi temp1,HIGH(NORMAL_MESSAGE*2)
+	rcall lcd_print
+	pop temp1
+	pop temp0
+
+	rcall sound_clear
+	;Fall through
+_state_normal:
+	cbr temp1,0b1100_0000
+	ori temp1,(NORMAL<<6)
+
+	;Emergency switch pressed
+	;sbrc temp0,EMERGENCY_SWITCH
+	;rjmp set_state_evacuate
+
+	;If a button has been pressed
+	;Set state to alert
+	sbrc temp2,0
+	rjmp _set_state_alert
+				
+/*	;Reset switch pressed
+	sbrc temp0,RESET_SWITCH
+	clr temp1*/
+
+	ret
+
+_set_state_alert:
+	;TODO PORTB led for alert
+	;TODO Display which sectors are in alert
+	push temp0
+	push temp1
+	ldi temp0,LOW(ALERT_MESSAGE*2)
+	ldi temp1,HIGH(ALERT_MESSAGE*2)
+	rcall lcd_print
+	pop temp1
+	pop temp0
+	;Fall through
+_state_alert:
+	cbr temp1,0b1100_0000
+	ori temp1,(ALERT<<6)
+	rcall sound_alert
+
+	;Emergency switch pressed
+	sbrc temp0,EMERGENCY_SWITCH
+	rjmp _set_state_evacuate
+
+	;Isolate switch pressed
+	sbrc temp0,ISOLATE_SWITCH
+	rjmp _set_state_isolate
+
+/*	;Reset switch pressed
+	sbrc temp0,RESET_SWITCH
+	rjmp _set_state_normal*/
+
+	ret
+
+_set_state_evacuate:
+	;TODO PORTB led for evac?
+	push temp0
+	push temp1
+	ldi temp0,LOW(EVACUATE_MESSAGE*2)
+	ldi temp1,HIGH(EVACUATE_MESSAGE*2)
+	rcall lcd_print
+	pop temp1
+	pop temp0
+	;Fall through
+_state_evacuate:
+	cbr temp1,0b1100_0000
+	ori temp1,(EVACUATE<<6)
+	rcall sound_evacuate
+		
+	;Isolate switch pressed
+	sbrc temp0,ISOLATE_SWITCH
+	rjmp _set_state_isolate
+
+/*	;Reset switch pressed
+	sbrc temp0,RESET_SWITCH
+	rjmp _set_state_normal*/
+
+	ret
+
+_set_state_isolate:
+	;TODO Display which sectors are isolated
+	push temp0
+	push temp1
+	ldi temp0,LOW(NORMAL_MESSAGE*2)
+	ldi temp1,HIGH(NORMAL_MESSAGE*2)
+	rcall lcd_print
+	pop temp1
+	pop temp0
+	rcall sound_clear
+	;Fall through
+_state_isolate:
+	cbr temp1,0b1100_0000
+	ori temp1,(ISOLATE<<6)
 
 	ret
 

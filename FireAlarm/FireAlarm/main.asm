@@ -39,16 +39,16 @@ main:
 	;sbi PORTB,0
 
 	;Run init procedures
-	call lcd_init
-	;call state_init
+	rcall lcd_init
+	;rcall state_init
 
 	ldi temp0,LOW(NORMAL_MESSAGE*2)
 	ldi temp1,HIGH(NORMAL_MESSAGE*2)
-	call lcd_print
+	rcall lcd_print
 
 	;Main loop
 	main_loop:
-		call state_update
+		rcall state_update
 	rjmp main_loop
 
 ; Delay by the number of instructions in r0/r1/r2 as a 24 bit value * 4

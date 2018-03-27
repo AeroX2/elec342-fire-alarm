@@ -52,25 +52,25 @@ _i2c_start:
 	clr temp0
 	ldi temp0,(1<<TWINT)|(1<<TWEN)|(1<<TWSTA)
 	sts TWCR,temp0
-	call _i2c_wait
+	rcall _i2c_wait
 _i2c_slave_write:
 	pop temp0
 	sts TWDR,temp0
 	ldi temp0,(1<<TWINT)|(1<<TWEN)
 	sts TWCR,temp0
-	call _i2c_wait
-	;call i2c_error_slave
+	rcall _i2c_wait
+	;rcall i2c_error_slave
 _i2c_data_write:
 	pop temp1
 	sts TWDR,temp1
 	ldi temp0,(1<<TWINT)|(1<<TWEN)
 	sts TWCR,temp0
-	call _i2c_wait
-	;call i2c_error_data
+	rcall _i2c_wait
+	;rcall i2c_error_data
 _i2c_stop:
 	ldi temp0,(1<<TWINT)|(1<<TWEN)|(1<<TWSTO)
 	sts TWCR,temp0
-	call _i2c_stop_wait
+	rcall _i2c_stop_wait
 
 	pop temp1
 	pop temp0

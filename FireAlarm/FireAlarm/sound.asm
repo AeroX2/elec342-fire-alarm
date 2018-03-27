@@ -21,7 +21,7 @@ sound_alert:
 
 	ldi temp0,LOW(SOUND_ALERT_HERTZ)
 	ldi temp1,HIGH(SOUND_ALERT_HERTZ)
-	call _pwm_8x_50
+	rcall _pwm_8x_50
 
 	pop temp1
 	pop temp0
@@ -34,7 +34,7 @@ sound_evacuate:
 
 	mov temp0,low_hertz
 	mov temp1,high_hertz
-	call _pwm_8x_50
+	rcall _pwm_8x_50
 
 	subi low_hertz,60
 	sbci high_hertz,0
@@ -54,7 +54,7 @@ sound_evacuate:
 	ldi temp0,LOW(DELAY_10)
 	ldi temp1,HIGH(DELAY_10)
 	ldi temp2,0
-	call delay
+	rcall delay
 
 	pop temp2
 	pop temp1
