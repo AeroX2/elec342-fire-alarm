@@ -75,7 +75,7 @@ _pwm_8x_50:
 	sts OCR1AH,temp1
 	sts OCR1AL,temp0
 
-	ldi temp0,(1<<COM1A0)|(1<<COM1B1)|(1<<WGM11)|(1<<WGM10);0b1010_0011 
+	ldi temp0,(1<<COM1A0)|(1<<WGM11)|(1<<WGM10);0b1010_0011 
 	sts TCCR1A,temp0 ;Toggle OC1 pin and use Fast PWM with wave generation
 	ldi temp0,(1<<WGM13)|(1<<WGM12)|(1<<CS11)
 	sts TCCR1B,temp0 ;8x prescaling, starts the timer

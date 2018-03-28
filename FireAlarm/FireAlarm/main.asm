@@ -42,6 +42,11 @@ main:
 	rcall lcd_init
 	;rcall state_init
 
+	ldi temp0,LOW(1000)
+	ldi temp1,HIGH(1000)
+	clr temp2
+	call delay
+
 	ldi temp0,LOW(NORMAL_MESSAGE*2)
 	ldi temp1,HIGH(NORMAL_MESSAGE*2)
 	rcall lcd_print

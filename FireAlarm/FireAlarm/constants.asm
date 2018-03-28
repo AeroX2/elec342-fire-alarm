@@ -50,6 +50,6 @@
 NORMAL_MESSAGE:
 .db "NORMAL: All good",0,0
 ALERT_MESSAGE:
-.db "ALERT: Sector _",0
+.db "ALERT: Sector ",0,0
 EVACUATE_MESSAGE:
 .db "EVACUATE! EVAC!",0
