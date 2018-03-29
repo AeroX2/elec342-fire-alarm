@@ -5,11 +5,16 @@
 ; Author : James Ridey
 ;
 
-.def temp0 = r16
-.def temp1 = r17
-.def temp2 = r18
-.def temp3 = r19
-.def loop = r20
+.def temp0 = r16 ;Temporary/Param 0
+.def temp1 = r17 ;Temporary/Param 1
+.def temp2 = r18 ;Temporary/Param 2
+.def temp3 = r19 ;Temporary/Param 3
+.def loop = r20  ;Loop counter
+
+.def state_read = r1;
+.def state_write = r2;
+.def buttons = r3;
+.def buttons_read = r4;
 
 .def sound_loop = r21
 .def low_hertz = r22

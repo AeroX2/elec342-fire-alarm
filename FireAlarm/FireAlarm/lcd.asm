@@ -12,6 +12,7 @@ LCD_STARTUP_SEQUENCE:
 .db 0x00,0x20 ; Entry mode, left to right, shift every character input
 .equ LCD_STARTUP_SEQUENCE_SIZE = 4
 
+;Private function to pulse the enable line on the LCD
 _pulse_enable:
 	mov temp1,temp0
 
@@ -25,6 +26,7 @@ _pulse_enable:
 
 	ret
 
+;Private function to write one character to the display
 _write_char:
 	;Send first 4 bits of character
 	mov temp2,temp0
@@ -44,6 +46,7 @@ _write_char:
 
 	ret
 
+;Function to initialize and clear the LCD display
 lcd_init:
 	rcall i2c_init
 	
@@ -81,6 +84,9 @@ lcd_init:
 
 	ret
 
+;Function to display a string on the display
+;Param 0: Low address of the string in program memory
+;Param 1: High address of the string in program memory
 lcd_print:
 	;rcall i2c_init
 
