@@ -29,6 +29,7 @@ state_interrupt:
 
 _state_scan:
 	push loop
+	push temp2
 
 	ldi loop,BUILDINGS
 	_state_scan_loop:
@@ -49,12 +50,14 @@ _state_scan:
 	;State was found, set temp0 to 1
 	found:
 	ldi temp0,1
+	pop temp2
 	pop loop
 	ret
 	
 	not_found:
 	ldi temp0,0
 
+	pop temp2
 	pop loop
 	ret
 
@@ -104,10 +107,10 @@ _state_machine_update:
 	mov buttons,temp0
 	mov buttons_read,temp0
 
-	mov temp0,state
-	ldi temp1,NORMAL
-	call _state_scan
-	mov normal_on,temp0
+	;mov temp0,state
+	;ldi temp1,NORMAL
+	;call _state_scan
+	;mov normal_on,temp0
 	mov temp0,state
 	ldi temp1,ALERT
 	call _state_scan
@@ -116,10 +119,10 @@ _state_machine_update:
 	ldi temp1,EVACUATE
 	call _state_scan
 	mov evac_on,temp0
-	mov temp0,state
-	ldi temp1,ISOLATE
-	call _state_scan
-	mov isolate_on,temp0
+	;mov temp0,state
+	;ldi temp1,ISOLATE
+	;call _state_scan
+	;mov isolate_on,temp0
 
 	;Loop 4 times for each sensor
 	clr loop
@@ -244,6 +247,19 @@ _set_state_alert:
 	pop loop
 	;Fall through
 _state_alert:
+	;There is another alert/evac happening
+	mov temp0,state_write
+	ldi temp1,ALERT
+	rcall _state_scan
+	mov temp2,temp0
+	mov temp0,state_write
+	ldi temp1,EVACUATE
+	rcall _state_scan
+	or temp2,temp0
+	cpi temp2,1
+	breq _set_state_evacuate
+
+	;Deliberate: this needs to be after the code above
 	cbr state_write,0b1100_0000
 	ori state_write,(ALERT<<6)
 	rcall sound_alert
