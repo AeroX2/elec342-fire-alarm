@@ -206,7 +206,7 @@ _set_state_normal:
 	;Fall through
 _state_normal:
 	cbr state_write,0b1100_0000
-	ori state_write,NORMAL<<6
+	ori state_write,(NORMAL<<6)
 
 	;Skip if the emergency button isn't pressed
 	sbrs buttons,EMERGENCY_SWITCH
