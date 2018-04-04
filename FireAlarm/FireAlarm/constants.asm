@@ -20,6 +20,9 @@
 .def alert_on = r6
 .def evac_on = r7
 ;.def isolate_on = r8
+.def last_alert_time_l = r29 ;TODO Should figure out a better temporary variable
+.def last_alert_time_h = r30 ;TODO Should figure out a better temporary variable
+.def last_alert_time_h2 = r31 ;TODO Should figure out a better temporary variable
 
 .def sound_loop = r21
 .def low_hertz = r22
@@ -45,6 +48,8 @@
 .equ ALERT = 1
 .equ EVACUATE = 2
 .equ ISOLATE = 3
+
+.equ ALERT_TIMEOUT = 400000 ; 15~17s, not exact due to implementation
 
 ; Sound
 .equ SPEAKER_PORT = 1 ; PORTB, line 9 PWM

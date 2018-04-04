@@ -181,6 +181,10 @@ _state_machine_jump_table:
 
 	ret
 
+_set_state_normal_reset:
+	ldi last_alert_time_l,0
+	ldi last_alert_time_h,0
+	ldi last_alert_time_h2,0
 _set_state_normal:
 	ldi temp0,LOW(NORMAL_MESSAGE*2)
 	ldi temp1,HIGH(NORMAL_MESSAGE*2)
@@ -227,7 +231,20 @@ _set_state_alert:
 	ldi temp0,LOW(ALERT_MESSAGE*2)
 	ldi temp1,HIGH(ALERT_MESSAGE*2)
 	rcall lcd_print
-		
+
+	;Reset last_alert_time if it is zero
+	ldi temp0,0
+	cp temp0,last_alert_time_l
+	cpc temp0,last_alert_time_h
+	cpc temp0,last_alert_time_h2
+	breq _set_state_alert_jump2
+
+	ldi last_alert_time_l,LOW(ALERT_TIMEOUT)
+	ldi last_alert_time_h,HIGH(ALERT_TIMEOUT)
+	ldi last_alert_time_h2,BYTE3(ALERT_TIMEOUT)
+
+	_set_state_alert_jump2:
+
 	push loop
 		;Write the sensor value to the LCD
 		mov temp0,loop
@@ -266,7 +283,7 @@ _state_alert:
 
 	;Reset switch pressed
 	sbrc buttons,RESET_SWITCH
-	rjmp _set_state_normal
+	rjmp _set_state_normal_reset
 
 	;Emergency switch pressed
 	sbrc buttons,EMERGENCY_SWITCH
@@ -276,11 +293,13 @@ _state_alert:
 	sbrc buttons,ISOLATE_SWITCH
 	rjmp _set_state_isolate
 
-/*	;There is another alert/evac happening
-	mov temp0,alert_on
-	or temp0,evac_on
-	cpi temp0,1
-	breq _set_state_evacuate*/
+	subi last_alert_time_l,1
+	sbci last_alert_time_h,0
+	sbci last_alert_time_h2,0
+	brne _state_alert_jump1
+	rjmp _set_state_evacuate
+
+	_state_alert_jump1:
 
 	ret
 
@@ -297,7 +316,7 @@ _state_evacuate:
 
 	;Reset switch pressed
 	sbrc buttons,RESET_SWITCH
-	rjmp _set_state_normal
+	rjmp _set_state_normal_reset
 		
 	;Isolate switch pressed
 	sbrc buttons,ISOLATE_SWITCH
