@@ -11,10 +11,15 @@
 .def temp3 = r19 ;Temporary/Param 3
 .def loop = r20  ;Loop counter
 
-.def state_read = r1;
-.def state_write = r2;
-.def buttons = r3;
-.def buttons_read = r4;
+;Temporary state.asm variables
+.def state_read = r1
+.def state_write = r28 ;Should figure out a better temporary variable
+.def buttons = r3
+.def buttons_read = r4
+.def normal_on = r5
+.def alert_on = r6
+.def evac_on = r7
+.def isolate_on = r8
 
 .def sound_loop = r21
 .def low_hertz = r22

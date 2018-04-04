@@ -53,7 +53,7 @@ main:
 
 	;Main loop
 	main_loop:
-		;rcall state_update
+		rcall state_update
 	rjmp main_loop
 
 ; Delay by the number of instructions in r0/r1/r2 as a 24 bit value * 4

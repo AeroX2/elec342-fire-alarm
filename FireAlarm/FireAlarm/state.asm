@@ -27,6 +27,37 @@ state_interrupt:
 	;cli
 	reti
 
+_state_scan:
+	push loop
+
+	ldi loop,BUILDINGS
+	_state_scan_loop:
+		;Check if the state is the same
+		mov temp2,temp0
+		andi temp2,0b0000_0011
+		cp temp2,temp1
+		breq found
+
+		;Next state to read
+		lsr temp0
+		lsr temp0
+
+		dec loop
+	brge _state_scan_loop
+	rjmp not_found
+	
+	;State was found, set temp0 to 1
+	found:
+	ldi temp0,1
+	pop loop
+	ret
+	
+	not_found:
+	ldi temp0,0
+
+	pop loop
+	ret
+
 state_update:
 	push temp0
 	push temp1
@@ -73,6 +104,23 @@ _state_machine_update:
 	mov buttons,temp0
 	mov buttons_read,temp0
 
+	mov temp0,state
+	ldi temp1,NORMAL
+	call _state_scan
+	mov normal_on,temp0
+	mov temp0,state
+	ldi temp1,ALERT
+	call _state_scan
+	mov alert_on,temp0
+	mov temp0,state
+	ldi temp1,EVACUATE
+	call _state_scan
+	mov evac_on,temp0
+	mov temp0,state
+	ldi temp1,ISOLATE
+	call _state_scan
+	mov isolate_on,temp0
+
 	;Loop 4 times for each sensor
 	clr loop
 	_machine_loop:
@@ -84,25 +132,6 @@ _state_machine_update:
 
 	;Store the final state
 	mov state,state_write
-
-	;Reset switch pressed
-	sbrs buttons,RESET_SWITCH
-	rjmp reset_end
-
-	ldi temp0,LOW(NORMAL_MESSAGE*2)
-	ldi temp1,HIGH(NORMAL_MESSAGE*2)
-	rcall lcd_print
-
-	rcall sound_clear
-	clr state
-
-	;Lazy way of clearing the outputs
-	cbi PORTB,2
-	cbi PORTB,3
-	cbi PORTB,4
-	cbi PORTB,5
-
-	reset_end:
 
 	pop loop
 	pop temp3
@@ -116,7 +145,7 @@ _state_machine_jump_table:
 	lsr state_write
 	lsr state_write
 
-	mov temp0,state
+	mov temp0,state_read
 	andi temp0,0b0000_0011
 	cpi temp0,NORMAL
 	breq _state_normal_jump
@@ -149,54 +178,40 @@ _state_machine_jump_table:
 
 	ret
 
-_state_scan:
-	push loop
-	clt ;Clear the T flag
-
-	ldi loop,BUILDINGS
-	_state_scan_loop:
-		;Check if the state is the same
-		mov temp2,temp0
-		andi temp2,0b0000_0011
-		cp temp2,temp1
-		breq found
-
-		;Next state to read
-		lsr state_read
-		lsr state_read
-	dec loop
-	brlt _state_scan_loop
-	rjmp not_found
-
-	found:
-	;State was found, set the T flag
-	set
-	
-	not_found:
-	pop loop
-	ret
-
 _set_state_normal:
 	ldi temp0,LOW(NORMAL_MESSAGE*2)
 	ldi temp1,HIGH(NORMAL_MESSAGE*2)
 	rcall lcd_print
 	rcall sound_clear
+
+	push loop
+		;Turn off the led associated with this sensor
+		in temp0,PORTB
+		ldi temp1,0b1111_1101
+		shift:
+			lsl temp1
+			dec loop
+		brge shift
+		and temp0,temp1
+		out PORTB,temp0
+	pop loop
+
 	;Fall through
 _state_normal:
 	cbr state_write,0b1100_0000
 	ori state_write,NORMAL<<6
 
-/*	;Emergency switch pressed
-	sbrs temp0,EMERGENCY_SWITCH
+	;Skip if the emergency button isn't pressed
+	sbrs buttons,EMERGENCY_SWITCH
 	rjmp _state_normal_jump1
 
-	mov temp0,
-	ldi temp1,EVACUATE
-	rcall _state_scan
-	brts _state_normal_jump1
-	rjmp _set_state_evacuate
+	;Set state to evac if there isn't already an alert or evac happening
+	mov temp0,alert_on
+	or temp0,evac_on
+	cpi temp0,0
+	breq _set_state_evacuate
 
-	_state_normal_jump1:*/
+	_state_normal_jump1:
 
 	;If a button has been pressed
 	;Set state to alert
@@ -206,12 +221,11 @@ _state_normal:
 	ret
 
 _set_state_alert:
-	;TODO Display which sectors are in alert
+	ldi temp0,LOW(ALERT_MESSAGE*2)
+	ldi temp1,HIGH(ALERT_MESSAGE*2)
+	rcall lcd_print
+		
 	push loop
-		ldi temp0,LOW(ALERT_MESSAGE*2)
-		ldi temp1,HIGH(ALERT_MESSAGE*2)
-		rcall lcd_print
-
 		;Write the sensor value to the LCD
 		mov temp0,loop
 		ldi temp1,49
@@ -221,10 +235,10 @@ _set_state_alert:
 		;Turn on the led associated with this sensor
 		in temp0,PORTB
 		ldi temp1,0b0000_0010
-		shift:
-		lsl temp1
-		dec loop
-		brge shift
+		shift2:
+			lsl temp1
+			dec loop
+		brge shift2
 		or temp0,temp1
 		out PORTB,temp0
 	pop loop
@@ -234,6 +248,10 @@ _state_alert:
 	ori state_write,(ALERT<<6)
 	rcall sound_alert
 
+	;Reset switch pressed
+	sbrc buttons,RESET_SWITCH
+	rjmp _set_state_normal
+
 	;Emergency switch pressed
 	sbrc buttons,EMERGENCY_SWITCH
 	rjmp _set_state_evacuate
@@ -241,6 +259,12 @@ _state_alert:
 	;Isolate switch pressed
 	sbrc buttons,ISOLATE_SWITCH
 	rjmp _set_state_isolate
+
+/*	;There is another alert/evac happening
+	mov temp0,alert_on
+	or temp0,evac_on
+	cpi temp0,1
+	breq _set_state_evacuate*/
 
 	ret
 
@@ -254,6 +278,10 @@ _state_evacuate:
 	cbr state_write,0b1100_0000
 	ori state_write,(EVACUATE<<6)
 	rcall sound_evacuate
+
+	;Reset switch pressed
+	sbrc buttons,RESET_SWITCH
+	rjmp _set_state_normal
 		
 	;Isolate switch pressed
 	sbrc buttons,ISOLATE_SWITCH
@@ -272,5 +300,24 @@ _state_isolate:
 	cbr state_write,0b1100_0000
 	ori state_write,(ISOLATE<<6)
 
-	ret
+	;Reset switch pressed
+	sbrs buttons,RESET_SWITCH
+	rjmp _state_isolate_jump1
 
+	;Set state to normal if there isn't already an alert or evac happening
+	mov temp0,alert_on
+	or temp0,evac_on
+	cpi temp0,0
+	brne _state_isolate_jump1
+
+	clr state
+	;Lazy way of clearing the outputs
+	cbi PORTB,2
+	cbi PORTB,3
+	cbi PORTB,4
+	cbi PORTB,5
+	rjmp _set_state_normal
+
+	_state_isolate_jump1:
+
+	ret
