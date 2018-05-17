@@ -19,21 +19,24 @@ sound_alert:
 	push temp0
 	push temp1
 
-	cpi sound_alert_count_h2,0b1100_0010
-	brge skip_reset_sound_alert_count
+	; subi sound_alert_count_l,1
+	; sbci sound_alert_count_h,0
+	; sbci sound_alert_count_h2,0
+	; brcc skip_reset_sound_alert_count
 
-	ldi sound_alert_count_l,0xFF
-	ldi sound_alert_count_h,0xFF
-	ldi sound_alert_count_h2,0xFF
+	; ldi sound_alert_count_l,LOW(DELAY_1_SEC)
+	; ldi sound_alert_count_h,HIGH(DELAY_1_SEC)
+	; ldi sound_alert_count_h2,BYTE3(DELAY_1_SEC)
 
-	skip_reset_sound_alert_count:
+	; skip_reset_sound_alert_count:
 
-	subi sound_alert_count_l,1
-	sbci sound_alert_count_h,0
-	sbci sound_alert_count_h2,0
-
-	cpi sound_alert_count_h2,0b1110_0001
-	brlt clear
+	; ldi temp0,LOW(DELAY_1_SEC/2)
+	; ldi temp1,HIGH(DELAY_1_SEC/2)
+	; ldi temp2,BYTE3(DELAY_1_SEC/2)
+	; cp sound_alert_count_l,temp0
+	; cpc sound_alert_count_h,temp1
+	; cpc sound_alert_count_h2,temp2
+	; brlt clear
 
 	ldi temp0,LOW(SOUND_ALERT_HERTZ)
 	ldi temp1,HIGH(SOUND_ALERT_HERTZ)
@@ -57,9 +60,9 @@ sound_evacuate:
 	mov temp0,low_hertz
 	mov temp1,high_hertz
 	rcall _pwm_8x_50
-
-	subi low_hertz,60
-	sbci high_hertz,0
+	
+	subi temp0,60
+	sbci temp1,0
 
 	;Increase until >=SOUND_LOOP_COUNT and then reset
 	inc sound_loop
@@ -68,10 +71,14 @@ sound_evacuate:
 
 	;Reset sound
 	clr sound_loop
-	ldi low_hertz,LOW(SOUND_EVACUATE_HERTZ)
-	ldi high_hertz,HIGH(SOUND_EVACUATE_HERTZ)
+	ldi temp0,LOW(SOUND_EVACUATE_HERTZ)
+	ldi temp1,HIGH(SOUND_EVACUATE_HERTZ)
 	
 	end_1:
+	
+	mov low_hertz,temp0
+	mov high_hertz,temp1
+	
 	;Delay for 10 milliseconds
 	ldi temp0,LOW(DELAY_10)
 	ldi temp1,HIGH(DELAY_10)

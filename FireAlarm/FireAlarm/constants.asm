@@ -12,6 +12,7 @@
 .def loop = r20  ;Loop counter
 
 ;Temporary state.asm variables
+.def state = r24
 .def state_read = r1
 .def state_write = r28 ;TODO Should figure out a better temporary variable
 .def buttons = r3
@@ -22,25 +23,23 @@
 .def evac_on = r7
 ;.def isolate_on = r8
 
-.def blink_prescale = r9
-.def blink_count_alert = r10
-;.def blink_count_evac = r11
+.def blink_count_l = r21
+.def blink_count_h = r22
+.def blink_count_h2 = r23
 
 .def last_alert_time_l = r29 ;TODO Should figure out a better temporary variable
 .def last_alert_time_h = r30 ;TODO Should figure out a better temporary variable
 .def last_alert_time_h2 = r31 ;TODO Should figure out a better temporary variable
 
-.def sound_loop = r21
-.def low_hertz = r22
-.def high_hertz = r23
+;sound.asm variables
+.def sound_loop = r8
+.def low_hertz = r9
+.def high_hertz = r10
 
 ;Reusing registers because they shouldn't collide
-.def sound_alert_count_l = r21
-.def sound_alert_count_h = r22
-.def sound_alert_count_h2 = r23
-
-.def state = r24
-.def alert_count = r25
+;.def sound_alert_count_l = r21 ;TODO Memory location instead?
+;.def sound_alert_count_h = r22 ;TODO Memory location instead?
+;.def sound_alert_count_h2 = r23 ;TODO Memory location instead?
 
 ; Delay amounts
 .equ DELAY_1_SEC = (16000000/4); *0.8

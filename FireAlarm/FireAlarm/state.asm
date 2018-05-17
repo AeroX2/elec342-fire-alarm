@@ -150,6 +150,24 @@ _state_machine_update:
 	lsr temp1
 	lsr temp1
 	call mcp_write_pins
+	
+	;Subtract the blink count
+	subi blink_count_l,1
+	sbci blink_count_h,0
+	sbci blink_count_h2,0
+	
+	;If blink_count <= 0, reset to 1 second
+	ldi temp0,0
+	cp temp0,blink_count_l
+	cpc temp0,blink_count_h
+	cpc temp0,blink_count_h2
+	breq _skip_reset_blink
+	
+	ldi blink_count_l,LOW(DELAY_1_SEC)
+	ldi blink_count_h,HIGH(DELAY_1_SEC)
+	ldi blink_count_h2,BYTE3(DELAY_1_SEC)
+	
+	_skip_reset_blink:
 
 	pop loop
 	pop temp3
@@ -269,16 +287,20 @@ _set_state_alert:
 	pop loop
 	;Fall through
 _state_alert:
+	
+	; TODO Check why I need a _state_scan in here
+	; mov temp0,state_write
+	; ldi temp1,ALERT
+	; rcall _state_scan
+	; mov temp2,temp0
+	; mov temp0,state_write
+	; ldi temp1,EVACUATE
+	; rcall _state_scan
+	
 	;There is another alert/evac happening
-	mov temp0,state_write
-	ldi temp1,ALERT
-	rcall _state_scan
-	mov temp2,temp0
-	mov temp0,state_write
-	ldi temp1,EVACUATE
-	rcall _state_scan
-	or temp2,temp0
-	cpi temp2,1
+	mov temp0,alert_on
+	or temp0,evac_on
+	cpi temp0,0
 	breq _set_state_evacuate
 
 	;Deliberate: this needs to be after the code above
@@ -286,17 +308,24 @@ _state_alert:
 	ori state_write,(ALERT<<6)
 	rcall sound_alert
 
-	;Toggle led
-	in temp0,PORTD
-	ldi temp1,0b0000_1000
-	mov temp2,loop
-	shift2:
-		lsl temp1
-		dec temp2
-	brge shift2
-	or temp0,temp1
-	out PORTD,temp0
+	ldi temp0,LOW(DELAY_1_SEC/2)
+	ldi temp1,HIGH(DELAY_1_SEC/2)
+	ldi temp2,BYTE3(DELAY_1_SEC/2)
+	cp blink_count_l,temp0
+	cpc blink_count_h,temp1
+	cpc blink_count_h2,temp2
+	brlt _led_alert_on
 
+	mov temp0,loop
+	rcall _turn_off_led
+	rjmp _led_alert_end
+	
+	_led_alert_on:
+	mov temp0,loop
+	rcall _turn_on_led
+	
+	_led_alert_end:
+	
 	;Reset switch pressed
 	sbrc buttons,RESET_SWITCH
 	rjmp _set_state_normal_reset
@@ -320,7 +349,6 @@ _state_alert:
 	ret
 
 _set_state_evacuate:
-	;TODO PORTD led for evac?
 	ldi temp0,LOW(EVACUATE_MESSAGE*2)
 	ldi temp1,HIGH(EVACUATE_MESSAGE*2)
 	rcall lcd_print
@@ -329,22 +357,36 @@ _state_evacuate:
 	cbr state_write,0b1100_0000
 	ori state_write,(EVACUATE<<6)
 	rcall sound_evacuate
+	
+	lsr blink_count_l
+	ror blink_count_h
+	ror blink_count_h2
+	
+	ldi temp0,LOW(DELAY_1_SEC/2)
+	ldi temp1,HIGH(DELAY_1_SEC/2)
+	ldi temp2,BYTE3(DELAY_1_SEC/2)
+	cp blink_count_l,temp0
+	cpc blink_count_h,temp1
+	cpc blink_count_h2,temp2
+	brlt _led_alert_on
 
-	;Toggle led
-	in temp0,PORTD
-	ldi temp1,0b0000_1000
-	mov temp2,loop
-	shift3:
-		lsl temp1
-		dec temp2
-	brge shift3
-	or temp0,temp1
-	out PORTD,temp0
+	mov temp0,loop
+	rcall _turn_off_led
+	rjmp _led_alert_end
+	
+	_led_alert_on:
+	mov temp0,loop
+	rcall _turn_on_led
+	
+	_led_alert_end:
+	lsl blink_count_l
+	rol blink_count_h
+	rol blink_count_h2
 
 	;Reset switch pressed
 	sbrc buttons,RESET_SWITCH
 	rjmp _set_state_normal_reset
-		
+
 	;Isolate switch pressed
 	sbrc buttons,ISOLATE_SWITCH
 	rjmp _set_state_isolate
@@ -357,6 +399,10 @@ _set_state_isolate:
 	ldi temp1,HIGH(NORMAL_MESSAGE*2)
 	rcall lcd_print
 	rcall sound_clear
+	
+	mov temp0,loop
+	rcall _turn_on_led
+	
 	;Fall through
 _state_isolate:
 	cbr state_write,0b1100_0000
@@ -365,7 +411,7 @@ _state_isolate:
 	;Reset switch pressed
 	sbrs buttons,RESET_SWITCH
 	rjmp _state_isolate_jump1
-
+	
 	;Set state to normal if there isn't already an alert or evac happening
 	mov temp0,alert_on
 	or temp0,evac_on
@@ -382,4 +428,28 @@ _state_isolate:
 
 	_state_isolate_jump1:
 
+	ret
+	
+_turn_on_led:	
+	in temp1,PORTD
+	ldi temp2,0b0000_1000
+	shift:
+		lsl temp1
+		dec temp0
+	brge shift
+	or temp1,temp2
+	out PORTD,temp1
+	
+	ret
+	
+_turn_off_led:	
+	in temp1,PORTD
+	ldi temp2,0b1111_0111
+	shift:
+		lsl temp1
+		dec temp0
+	brge shift
+	and temp1,temp2
+	out PORTD,temp1
+	
 	ret
