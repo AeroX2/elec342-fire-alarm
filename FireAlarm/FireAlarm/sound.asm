@@ -19,9 +19,31 @@ sound_alert:
 	push temp0
 	push temp1
 
+	cpi sound_alert_count_h2,0b1100_0010
+	brge skip_reset_sound_alert_count
+
+	ldi sound_alert_count_l,0xFF
+	ldi sound_alert_count_h,0xFF
+	ldi sound_alert_count_h2,0xFF
+
+	skip_reset_sound_alert_count:
+
+	subi sound_alert_count_l,1
+	sbci sound_alert_count_h,0
+	sbci sound_alert_count_h2,0
+
+	cpi sound_alert_count_h2,0b1110_0001
+	brlt clear
+
 	ldi temp0,LOW(SOUND_ALERT_HERTZ)
 	ldi temp1,HIGH(SOUND_ALERT_HERTZ)
 	rcall _pwm_8x_50
+	rjmp end_2
+
+	clear:
+	rcall sound_clear
+
+	end_2:
 
 	pop temp1
 	pop temp0

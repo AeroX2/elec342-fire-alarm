@@ -79,6 +79,7 @@ _state_poll_buttons:
 	lsl temp0
 	lsl temp0
 	lsl temp0
+	lsl temp0
 	or temp1,temp0
 
 	clr temp0 ;Hold button pressed state
@@ -141,6 +142,7 @@ _state_machine_update:
 	;Store the final state
 	mov state,state_write
 
+	;Write led state to MCP
 	ldi temp0,0x00
 	in temp1,PORTD
 	lsr temp1
@@ -264,16 +266,6 @@ _set_state_alert:
 		ldi temp1,49
 		add temp0,temp1
 		rcall _write_char
-
-		;Turn on the led associated with this sensor
-		in temp0,PORTD
-		ldi temp1,0b0000_1000
-		shift2:
-			lsl temp1
-			dec loop
-		brge shift2
-		or temp0,temp1
-		out PORTD,temp0
 	pop loop
 	;Fall through
 _state_alert:
@@ -293,6 +285,17 @@ _state_alert:
 	cbr state_write,0b1100_0000
 	ori state_write,(ALERT<<6)
 	rcall sound_alert
+
+	;Toggle led
+	in temp0,PORTD
+	ldi temp1,0b0000_1000
+	mov temp2,loop
+	shift2:
+		lsl temp1
+		dec temp2
+	brge shift2
+	or temp0,temp1
+	out PORTD,temp0
 
 	;Reset switch pressed
 	sbrc buttons,RESET_SWITCH
@@ -326,6 +329,17 @@ _state_evacuate:
 	cbr state_write,0b1100_0000
 	ori state_write,(EVACUATE<<6)
 	rcall sound_evacuate
+
+	;Toggle led
+	in temp0,PORTD
+	ldi temp1,0b0000_1000
+	mov temp2,loop
+	shift3:
+		lsl temp1
+		dec temp2
+	brge shift3
+	or temp0,temp1
+	out PORTD,temp0
 
 	;Reset switch pressed
 	sbrc buttons,RESET_SWITCH

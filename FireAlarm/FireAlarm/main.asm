@@ -47,7 +47,7 @@ main:
 	out PORTC,temp0
 
 	;Run init procedures
-	rcall spi_init
+/*	rcall spi_init
 	rcall mcp_init
 	rcall lcd_init
 	rcall state_init
@@ -63,11 +63,12 @@ main:
 
 	ldi temp0,0x00
 	ldi temp1,0x00
-	rcall mcp_write_pins
+	rcall mcp_write_pins*/
 
 	;Main loop
 	main_loop:
-		rcall state_update
+		rcall sound_alert
+		;rcall state_update
 	rjmp main_loop
 
 ; Delay by the number of instructions in r0/r1/r2 as a 24 bit value * 4

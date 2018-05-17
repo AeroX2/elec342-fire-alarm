@@ -16,10 +16,16 @@
 .def state_write = r28 ;TODO Should figure out a better temporary variable
 .def buttons = r3
 .def buttons_read = r4
+
 ;.def normal_on = r5
 .def alert_on = r6
 .def evac_on = r7
 ;.def isolate_on = r8
+
+.def blink_prescale = r9
+.def blink_count_alert = r10
+;.def blink_count_evac = r11
+
 .def last_alert_time_l = r29 ;TODO Should figure out a better temporary variable
 .def last_alert_time_h = r30 ;TODO Should figure out a better temporary variable
 .def last_alert_time_h2 = r31 ;TODO Should figure out a better temporary variable
@@ -27,6 +33,12 @@
 .def sound_loop = r21
 .def low_hertz = r22
 .def high_hertz = r23
+
+;Reusing registers because they shouldn't collide
+.def sound_alert_count_l = r21
+.def sound_alert_count_h = r22
+.def sound_alert_count_h2 = r23
+
 .def state = r24
 .def alert_count = r25
 
@@ -41,17 +53,17 @@
 .equ DEBOUNCE_MEMORY_LOCATION = 0x100
 .equ BUILDINGS = 4
 
-.equ EMERGENCY_SWITCH = 4 ;A3
-.equ ISOLATE_SWITCH = 5 ;A2
-.equ RESET_SWITCH = 6 ;A1
-.equ EMERGENCY_SWITCH_MCP = 7 ;MCP
+.equ EMERGENCY_SWITCH = 5 ;A3
+.equ ISOLATE_SWITCH = 6 ;A2
+.equ RESET_SWITCH = 7 ;A1
+.equ EMERGENCY_SWITCH_MCP = 8 ;MCP
 
 .equ NORMAL = 0
 .equ ALERT = 1
 .equ EVACUATE = 2
 .equ ISOLATE = 3
 
-.equ ALERT_TIMEOUT = 400000 ; 15~17s, not exact due to implementation
+.equ ALERT_TIMEOUT = 80000 ; 4s~5s, not exact due to implementation
 
 ; Sound
 .equ SPEAKER_PORT = 1 ; PORTB, line 9 PWM
