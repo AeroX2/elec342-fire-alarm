@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "FireAlarm", "FireAlarm\FireAlarm.asmproj", "{59B1D629-9DCC-43ED-A0FD-8AB0E4D622AB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E0867D13-8692-479E-90FA-50269CAE511A}"
+	ProjectSection(SolutionItems) = preProject
+		mcp23s17.asm = mcp23s17.asm
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

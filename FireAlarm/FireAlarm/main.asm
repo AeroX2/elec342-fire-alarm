@@ -16,7 +16,8 @@
 .include "state.asm"
 .include "i2c.asm"
 .include "lcd.asm"
-;.include "spi.asm"
+.include "spi.asm"
+.include "mcp23s17.asm"
 .list
 
 ; Initialize IO pins
@@ -28,20 +29,29 @@ main:
 	ldi	temp0,low(RAMEND)
 	out	SPL,temp0
 
-	;Pull inputs high
-	ldi temp0,0b0111_1111
+	;Configure 0-3 as pullup pins
+	ldi temp0,0b0000_1111
 	out PORTD,temp0
 
-	;Configure as outputs
-	ldi temp0,0b0011_1110
-	out DDRB,temp0
+	;Configure 4-7 as outputs
+	ldi temp0,0b1111_0000
+	out DDRD,temp0
 
-	;sbi PORTB,0
+	;Configure 9-11 and 13 as outputs
+	ldi temp0,0b0010_1110
+	out DDRB,temp0
+	sbi PORTB,SLAVE_SELECT
+
+	;Configure analog pins as inputs
+	ldi temp0,0b0000_1110
+	out PORTC,temp0
 
 	;Run init procedures
+	rcall spi_init
+	rcall mcp_init
 	rcall lcd_init
-	;rcall state_init
-
+	rcall state_init
+	
 	ldi temp0,LOW(1000)
 	ldi temp1,HIGH(1000)
 	clr temp2
@@ -50,6 +60,10 @@ main:
 	ldi temp0,LOW(NORMAL_MESSAGE*2)
 	ldi temp1,HIGH(NORMAL_MESSAGE*2)
 	rcall lcd_print
+
+	ldi temp0,0x00
+	ldi temp1,0x00
+	rcall mcp_write_pins
 
 	;Main loop
 	main_loop:

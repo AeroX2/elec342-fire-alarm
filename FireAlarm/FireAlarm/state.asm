@@ -70,10 +70,19 @@ state_update:
 	;Fall through
 _state_poll_buttons:	
 	;TODO This debouncing code doesn't work or does it?????
-	clr temp0 ;Hold button pressed state
+
 	in temp1,PIND ;Hold pin state
 	ldi temp2,0b1111_1110 ;Hold constant compare value
 	
+	in temp0,PINC
+	andi temp1,0b0000_1111 ;Ignore the LED pins
+	lsl temp0
+	lsl temp0
+	lsl temp0
+	or temp1,temp0
+
+	clr temp0 ;Hold button pressed state
+
 	ldi XL,LOW(DEBOUNCE_MEMORY_LOCATION)
 	ldi XH,HIGH(DEBOUNCE_MEMORY_LOCATION)
 	debounce_loop:
@@ -100,6 +109,7 @@ _state_poll_buttons:
 		inc XL
 		cpi XL,LOW(DEBOUNCE_MEMORY_LOCATION+8*2)
 	brlt debounce_loop
+
 	;Fall Through
 _state_machine_update:	
 	clr state_write
@@ -107,22 +117,17 @@ _state_machine_update:
 	mov buttons,temp0
 	mov buttons_read,temp0
 
-	;mov temp0,state
-	;ldi temp1,NORMAL
-	;call _state_scan
-	;mov normal_on,temp0
+	;Check if any state is in alert
 	mov temp0,state
 	ldi temp1,ALERT
 	call _state_scan
 	mov alert_on,temp0
+
+	;Check if any state is in evacuate
 	mov temp0,state
 	ldi temp1,EVACUATE
 	call _state_scan
 	mov evac_on,temp0
-	;mov temp0,state
-	;ldi temp1,ISOLATE
-	;call _state_scan
-	;mov isolate_on,temp0
 
 	;Loop 4 times for each sensor
 	clr loop
@@ -135,6 +140,14 @@ _state_machine_update:
 
 	;Store the final state
 	mov state,state_write
+
+	ldi temp0,0x00
+	in temp1,PORTD
+	lsr temp1
+	lsr temp1
+	lsr temp1
+	lsr temp1
+	call mcp_write_pins
 
 	pop loop
 	pop temp3
@@ -193,14 +206,14 @@ _set_state_normal:
 
 	push loop
 		;Turn off the led associated with this sensor
-		in temp0,PORTB
-		ldi temp1,0b1111_1101
+		in temp0,PORTD
+		ldi temp1,0b1111_0111
 		shift:
 			lsl temp1
 			dec loop
 		brge shift
 		and temp0,temp1
-		out PORTB,temp0
+		out PORTD,temp0
 	pop loop
 
 	;Fall through
@@ -253,14 +266,14 @@ _set_state_alert:
 		rcall _write_char
 
 		;Turn on the led associated with this sensor
-		in temp0,PORTB
-		ldi temp1,0b0000_0010
+		in temp0,PORTD
+		ldi temp1,0b0000_1000
 		shift2:
 			lsl temp1
 			dec loop
 		brge shift2
 		or temp0,temp1
-		out PORTB,temp0
+		out PORTD,temp0
 	pop loop
 	;Fall through
 _state_alert:
@@ -304,7 +317,7 @@ _state_alert:
 	ret
 
 _set_state_evacuate:
-	;TODO PORTB led for evac?
+	;TODO PORTD led for evac?
 	ldi temp0,LOW(EVACUATE_MESSAGE*2)
 	ldi temp1,HIGH(EVACUATE_MESSAGE*2)
 	rcall lcd_print
@@ -347,10 +360,10 @@ _state_isolate:
 
 	clr state
 	;Lazy way of clearing the outputs
-	cbi PORTB,2
-	cbi PORTB,3
-	cbi PORTB,4
-	cbi PORTB,5
+	cbi PORTD,4
+	cbi PORTD,5
+	cbi PORTD,6
+	cbi PORTD,7
 	rjmp _set_state_normal
 
 	_state_isolate_jump1:

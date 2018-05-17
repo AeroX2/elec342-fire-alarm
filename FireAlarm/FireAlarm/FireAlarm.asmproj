@@ -91,7 +91,13 @@
     <Compile Include="main.asm">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="mcp23s17.asm">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="sound.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="spi.asm">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="state.asm">
