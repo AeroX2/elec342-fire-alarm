@@ -25,12 +25,36 @@ mcp_write_pins:
 	rcall _mcp_write
 	ret
 
+mcp_read_pins:
+	mov temp2,temp1
+	mov temp1,temp0
+	ldi temp0,0x12
+	rcall _mcp_read
+	ret
+
 _mcp_write:
 	push temp0
 
 	cbi PORTB,SLAVE_SELECT
 
 	ldi temp0,0x40
+	rcall spi_send
+	pop temp0
+	rcall spi_send
+	mov temp0,temp1
+	rcall spi_send
+	mov temp0,temp2
+	rcall spi_send
+
+	sbi PORTB,SLAVE_SELECT
+	ret
+
+_mcp_read:
+	push temp0
+
+	cbi PORTB,SLAVE_SELECT
+
+	ldi temp0,0x41
 	rcall spi_send
 	pop temp0
 	rcall spi_send

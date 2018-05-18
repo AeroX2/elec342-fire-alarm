@@ -56,21 +56,28 @@ sound_evacuate:
 	push temp0
 	push temp1
 	push temp2
+	push temp3
+	
+	mov temp2,sound_loop
+	mov temp3,slight_delay
+
+	inc temp3
+	brvc end_3
 
 	mov temp0,low_hertz
 	mov temp1,high_hertz
 	rcall _pwm_8x_50
-	
+
 	subi temp0,60
 	sbci temp1,0
 
 	;Increase until >=SOUND_LOOP_COUNT and then reset
-	inc sound_loop
-	cpi sound_loop,SOUND_LOOP_COUNT
+	inc temp2
+	cpi temp2,SOUND_LOOP_COUNT
 	brlo end_1
 
 	;Reset sound
-	clr sound_loop
+	clr temp2
 	ldi temp0,LOW(SOUND_EVACUATE_HERTZ)
 	ldi temp1,HIGH(SOUND_EVACUATE_HERTZ)
 	
@@ -78,13 +85,13 @@ sound_evacuate:
 	
 	mov low_hertz,temp0
 	mov high_hertz,temp1
-	
-	;Delay for 10 milliseconds
-	ldi temp0,LOW(DELAY_10)
-	ldi temp1,HIGH(DELAY_10)
-	ldi temp2,0
-	rcall delay
 
+	end_3:
+
+	mov sound_loop,temp2
+	mov slight_delay,temp3
+
+	pop temp3
 	pop temp2
 	pop temp1
 	pop temp0

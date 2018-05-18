@@ -121,13 +121,13 @@ _state_machine_update:
 	;Check if any state is in alert
 	mov temp0,state
 	ldi temp1,ALERT
-	call _state_scan
+	rcall _state_scan
 	mov alert_on,temp0
 
 	;Check if any state is in evacuate
 	mov temp0,state
 	ldi temp1,EVACUATE
-	call _state_scan
+	rcall _state_scan
 	mov evac_on,temp0
 
 	;Loop 4 times for each sensor
@@ -149,25 +149,36 @@ _state_machine_update:
 	lsr temp1
 	lsr temp1
 	lsr temp1
-	call mcp_write_pins
-	
-	;Subtract the blink count
-	subi blink_count_l,1
-	sbci blink_count_h,0
-	sbci blink_count_h2,0
-	
-	;If blink_count <= 0, reset to 1 second
+	rcall mcp_write_pins
+
+	;If blink_count <= 0, reset to initial
 	ldi temp0,0
-	cp temp0,blink_count_l
-	cpc temp0,blink_count_h
-	cpc temp0,blink_count_h2
-	breq _skip_reset_blink
+	cp temp0,blink_alert_l
+	cpc temp0,blink_alert_h
+	brne _skip_reset_alert
 	
-	ldi blink_count_l,LOW(DELAY_1_SEC)
-	ldi blink_count_h,HIGH(DELAY_1_SEC)
-	ldi blink_count_h2,BYTE3(DELAY_1_SEC)
+	ldi blink_alert_l,LOW(ALERT_BLINK)
+	ldi blink_alert_h,HIGH(ALERT_BLINK)
 	
-	_skip_reset_blink:
+	_skip_reset_alert:
+
+	;If blink_count <= 0, reset to initial
+	cp temp0,blink_evac_l
+	cpc temp0,blink_evac_h
+	brne _skip_reset_evac
+	
+	ldi blink_evac_l,LOW(EVAC_BLINK)
+	ldi blink_evac_h,HIGH(EVAC_BLINK)
+	
+	_skip_reset_evac:
+
+	;Subtract the blink count
+	subi blink_alert_l,1
+	sbci blink_alert_h,0
+
+	;Subtract the blink count
+	subi blink_evac_l,1
+	sbci blink_evac_h,0
 
 	pop loop
 	pop temp3
@@ -217,24 +228,14 @@ _state_machine_jump_table:
 _set_state_normal_reset:
 	ldi last_alert_time_l,0
 	ldi last_alert_time_h,0
-	ldi last_alert_time_h2,0
 _set_state_normal:
 	ldi temp0,LOW(NORMAL_MESSAGE*2)
 	ldi temp1,HIGH(NORMAL_MESSAGE*2)
 	rcall lcd_print
 	rcall sound_clear
 
-	push loop
-		;Turn off the led associated with this sensor
-		in temp0,PORTD
-		ldi temp1,0b1111_0111
-		shift:
-			lsl temp1
-			dec loop
-		brge shift
-		and temp0,temp1
-		out PORTD,temp0
-	pop loop
+	mov temp0,loop
+	rcall _turn_off_led
 
 	;Fall through
 _state_normal:
@@ -269,12 +270,10 @@ _set_state_alert:
 	ldi temp0,0
 	cp temp0,last_alert_time_l
 	cpc temp0,last_alert_time_h
-	cpc temp0,last_alert_time_h2
 	breq _set_state_alert_jump2
 
 	ldi last_alert_time_l,LOW(ALERT_TIMEOUT)
 	ldi last_alert_time_h,HIGH(ALERT_TIMEOUT)
-	ldi last_alert_time_h2,BYTE3(ALERT_TIMEOUT)
 
 	_set_state_alert_jump2:
 
@@ -288,44 +287,42 @@ _set_state_alert:
 	;Fall through
 _state_alert:
 	
-	; TODO Check why I need a _state_scan in here
-	; mov temp0,state_write
-	; ldi temp1,ALERT
-	; rcall _state_scan
-	; mov temp2,temp0
-	; mov temp0,state_write
-	; ldi temp1,EVACUATE
-	; rcall _state_scan
+	/*; TODO Check why I need a _state_scan in here
+	mov temp0,state_write
+	ldi temp1,ALERT
+	rcall _state_scan
+	mov temp2,temp0
+	mov temp0,state_write
+	ldi temp1,EVACUATE
+	rcall _state_scan
 	
 	;There is another alert/evac happening
 	mov temp0,alert_on
 	or temp0,evac_on
-	cpi temp0,0
-	breq _set_state_evacuate
+	cpi temp0,1
+	breq _set_state_evacuate*/
 
 	;Deliberate: this needs to be after the code above
 	cbr state_write,0b1100_0000
 	ori state_write,(ALERT<<6)
 	rcall sound_alert
 
-	ldi temp0,LOW(DELAY_1_SEC/2)
-	ldi temp1,HIGH(DELAY_1_SEC/2)
-	ldi temp2,BYTE3(DELAY_1_SEC/2)
-	cp blink_count_l,temp0
-	cpc blink_count_h,temp1
-	cpc blink_count_h2,temp2
-	brlt _led_alert_on
+	ldi temp0,LOW(ALERT_BLINK/2)
+	ldi temp1,HIGH(ALERT_BLINK/2)
+	cp temp0,blink_alert_l
+	cpc temp1,blink_alert_h
+	brlo _led_alert_on
 
 	mov temp0,loop
 	rcall _turn_off_led
 	rjmp _led_alert_end
-	
+
 	_led_alert_on:
 	mov temp0,loop
 	rcall _turn_on_led
 	
 	_led_alert_end:
-	
+		
 	;Reset switch pressed
 	sbrc buttons,RESET_SWITCH
 	rjmp _set_state_normal_reset
@@ -340,7 +337,6 @@ _state_alert:
 
 	subi last_alert_time_l,1
 	sbci last_alert_time_h,0
-	sbci last_alert_time_h2,0
 	brne _state_alert_jump1
 	rjmp _set_state_evacuate
 
@@ -354,35 +350,28 @@ _set_state_evacuate:
 	rcall lcd_print
 	;Fall through
 _state_evacuate:
+	ldi temp0,LOW(EVAC_BLINK/2)
+	ldi temp1,HIGH(EVAC_BLINK/2)
+	cp temp0,blink_evac_l
+	cpc temp1,blink_evac_h
+	brlo _led_alert_on_2
+
+	mov temp0,loop
+	rcall _turn_off_led
+	rjmp _led_alert_end_2
+
+	_led_alert_on_2:
+	mov temp0,loop
+	rcall _turn_on_led
+	
+	_led_alert_end_2:
+
+	;TODO Its not a BUG its a feature
+	;Sound gets faster depending on how many sensors are triggered
 	cbr state_write,0b1100_0000
 	ori state_write,(EVACUATE<<6)
 	rcall sound_evacuate
 	
-	lsr blink_count_l
-	ror blink_count_h
-	ror blink_count_h2
-	
-	ldi temp0,LOW(DELAY_1_SEC/2)
-	ldi temp1,HIGH(DELAY_1_SEC/2)
-	ldi temp2,BYTE3(DELAY_1_SEC/2)
-	cp blink_count_l,temp0
-	cpc blink_count_h,temp1
-	cpc blink_count_h2,temp2
-	brlt _led_alert_on
-
-	mov temp0,loop
-	rcall _turn_off_led
-	rjmp _led_alert_end
-	
-	_led_alert_on:
-	mov temp0,loop
-	rcall _turn_on_led
-	
-	_led_alert_end:
-	lsl blink_count_l
-	rol blink_count_h
-	rol blink_count_h2
-
 	;Reset switch pressed
 	sbrc buttons,RESET_SWITCH
 	rjmp _set_state_normal_reset
@@ -405,6 +394,10 @@ _set_state_isolate:
 	
 	;Fall through
 _state_isolate:
+	;If everything is in evac mode, don't enable isolate
+	cpi state,0b1111_1111
+	breq _state_isolate_jump2
+
 	cbr state_write,0b1100_0000
 	ori state_write,(ISOLATE<<6)
 
@@ -418,12 +411,9 @@ _state_isolate:
 	cpi temp0,0
 	brne _state_isolate_jump1
 
-	clr state
-	;Lazy way of clearing the outputs
-	cbi PORTD,4
-	cbi PORTD,5
-	cbi PORTD,6
-	cbi PORTD,7
+	_state_isolate_jump2:
+	mov temp0,loop
+	rcall _turn_off_led
 	rjmp _set_state_normal
 
 	_state_isolate_jump1:
@@ -431,25 +421,26 @@ _state_isolate:
 	ret
 	
 _turn_on_led:	
-	in temp1,PORTD
-	ldi temp2,0b0000_1000
-	shift:
+	ldi temp1,0b0000_1000
+	in temp2,PORTD
+	_turn_on_led_jump1:
 		lsl temp1
 		dec temp0
-	brge shift
-	or temp1,temp2
-	out PORTD,temp1
+	brge _turn_on_led_jump1
+	or temp2,temp1
+	out PORTD,temp2
 	
 	ret
 	
 _turn_off_led:	
-	in temp1,PORTD
-	ldi temp2,0b1111_0111
-	shift:
+	ldi temp1,0b1111_0111
+	in temp2,PORTD
+	_turn_off_led_jump1:
 		lsl temp1
+		ori temp1,1
 		dec temp0
-	brge shift
-	and temp1,temp2
-	out PORTD,temp1
+	brge _turn_off_led_jump1
+	and temp2,temp1
+	out PORTD,temp2
 	
 	ret

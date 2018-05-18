@@ -12,9 +12,9 @@
 .def loop = r20  ;Loop counter
 
 ;Temporary state.asm variables
-.def state = r24
+.def state = r28
 .def state_read = r1
-.def state_write = r28 ;TODO Should figure out a better temporary variable
+.def state_write = r29 ;TODO Should figure out a better temporary variable
 .def buttons = r3
 .def buttons_read = r4
 
@@ -23,18 +23,19 @@
 .def evac_on = r7
 ;.def isolate_on = r8
 
-.def blink_count_l = r21
-.def blink_count_h = r22
-.def blink_count_h2 = r23
+.def blink_alert_l = r21
+.def blink_alert_h = r22
+.def blink_evac_l = r23
+.def blink_evac_h = r24
 
-.def last_alert_time_l = r29 ;TODO Should figure out a better temporary variable
-.def last_alert_time_h = r30 ;TODO Should figure out a better temporary variable
-.def last_alert_time_h2 = r31 ;TODO Should figure out a better temporary variable
+.def last_alert_time_l = r30 ;TODO Should figure out a better temporary variable
+.def last_alert_time_h = r31 ;TODO Should figure out a better temporary variable
 
 ;sound.asm variables
 .def sound_loop = r8
 .def low_hertz = r9
 .def high_hertz = r10
+.def slight_delay = r11
 
 ;Reusing registers because they shouldn't collide
 ;.def sound_alert_count_l = r21 ;TODO Memory location instead?
@@ -62,7 +63,9 @@
 .equ EVACUATE = 2
 .equ ISOLATE = 3
 
-.equ ALERT_TIMEOUT = 80000 ; 4s~5s, not exact due to implementation
+.equ ALERT_TIMEOUT = 65535 ; 2s~3s, not exact due to implementation
+.equ ALERT_BLINK = 20000 
+.equ EVAC_BLINK = 10000 ;50 
 
 ; Sound
 .equ SPEAKER_PORT = 1 ; PORTB, line 9 PWM

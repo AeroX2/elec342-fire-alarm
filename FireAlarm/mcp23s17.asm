@@ -12,13 +12,13 @@ mcp_write_pins:
 	sbi PORTB,SLAVE_SELECT
 
 	ldi temp0,0x40
-	call spi_send
+	rcall spi_send
 	ldi temp0,0x12
-	call spi_send
+	rcall spi_send
 	pop temp0
-	call spi_send
+	rcall spi_send
 	pop temp1
-	call spi_send
+	rcall spi_send
 
 	sbc PORTB,SLAVE_SELECT
 
