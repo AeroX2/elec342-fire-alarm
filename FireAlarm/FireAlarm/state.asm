@@ -294,7 +294,7 @@ _set_state_alert:
 	;Fall through
 _state_alert:
 	
-	/*; TODO Check why I need a _state_scan in here
+/*	; TODO Check why I need a _state_scan in here
 	mov temp0,state_write
 	ldi temp1,ALERT
 	rcall _state_scan
@@ -308,6 +308,20 @@ _state_alert:
 	or temp0,evac_on
 	cpi temp0,1
 	breq _set_state_evacuate*/
+
+	;TODO QUICK FIX
+	;There is another alert/evac happening
+	mov temp0,state_write
+	ldi temp1,ALERT
+	rcall _state_scan
+	mov temp2,temp0
+	mov temp0,state_write
+	ldi temp1,EVACUATE
+	rcall _state_scan
+	or temp2,temp0
+	cpi temp2,1
+	breq _set_state_evacuate
+
 
 	;Deliberate: this needs to be after the code above
 	cbr state_write,0b1100_0000
@@ -345,12 +359,12 @@ _state_alert:
 	sbrc buttons,ISOLATE_SWITCH
 	rjmp _set_state_isolate
 
-/*	subi last_alert_time_l,1
+	subi last_alert_time_l,1
 	sbci last_alert_time_h,0
 	brne _state_alert_jump1
 	rjmp _set_state_evacuate
 
-	_state_alert_jump1:*/
+	_state_alert_jump1:
 
 	ret
 
