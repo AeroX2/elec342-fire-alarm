@@ -37,11 +37,6 @@
 .def high_hertz = r10
 .def slight_delay = r11
 
-;Reusing registers because they shouldn't collide
-;.def sound_alert_count_l = r21 ;TODO Memory location instead?
-;.def sound_alert_count_h = r22 ;TODO Memory location instead?
-;.def sound_alert_count_h2 = r23 ;TODO Memory location instead?
-
 ; Delay amounts
 .equ DELAY_1_SEC = (16000000/4); *0.8
 .equ DELAY_10 =  DELAY_1_SEC/100   ; 10ms

@@ -19,34 +19,9 @@ sound_alert:
 	push temp0
 	push temp1
 
-	; subi sound_alert_count_l,1
-	; sbci sound_alert_count_h,0
-	; sbci sound_alert_count_h2,0
-	; brcc skip_reset_sound_alert_count
-
-	; ldi sound_alert_count_l,LOW(DELAY_1_SEC)
-	; ldi sound_alert_count_h,HIGH(DELAY_1_SEC)
-	; ldi sound_alert_count_h2,BYTE3(DELAY_1_SEC)
-
-	; skip_reset_sound_alert_count:
-
-	; ldi temp0,LOW(DELAY_1_SEC/2)
-	; ldi temp1,HIGH(DELAY_1_SEC/2)
-	; ldi temp2,BYTE3(DELAY_1_SEC/2)
-	; cp sound_alert_count_l,temp0
-	; cpc sound_alert_count_h,temp1
-	; cpc sound_alert_count_h2,temp2
-	; brlt clear
-
 	ldi temp0,LOW(SOUND_ALERT_HERTZ)
 	ldi temp1,HIGH(SOUND_ALERT_HERTZ)
 	rcall _pwm_8x_50
-	rjmp end_2
-
-	clear:
-	rcall sound_clear
-
-	end_2:
 
 	pop temp1
 	pop temp0

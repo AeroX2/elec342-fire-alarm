@@ -73,7 +73,7 @@ _state_poll_buttons:
 
 	in temp1,PIND ;Hold pin state
 	ldi temp2,0b1111_1110 ;Hold constant compare value
-	
+
 	in temp0,PINC
 	andi temp1,0b0000_1111 ;Ignore the LED pins
 	lsl temp0
@@ -117,6 +117,13 @@ _state_machine_update:
 	mov state_read,state
 	mov buttons,temp0
 	mov buttons_read,temp0
+
+	;Read MCP pin for the emergency pin
+	rcall mcp_read_pins
+	lsr temp0
+	lsr temp0
+	or buttons,temp0
+	or buttons_read,temp0
 
 	;Check if any state is in alert
 	mov temp0,state
@@ -305,7 +312,7 @@ _state_alert:
 	;Deliberate: this needs to be after the code above
 	cbr state_write,0b1100_0000
 	ori state_write,(ALERT<<6)
-	rcall sound_alert
+	;rcall sound_alert
 
 	ldi temp0,LOW(ALERT_BLINK/2)
 	ldi temp1,HIGH(ALERT_BLINK/2)
@@ -313,11 +320,14 @@ _state_alert:
 	cpc temp1,blink_alert_h
 	brlo _led_alert_on
 
+	rcall sound_clear
 	mov temp0,loop
 	rcall _turn_off_led
 	rjmp _led_alert_end
 
 	_led_alert_on:
+	rcall sound_alert
+
 	mov temp0,loop
 	rcall _turn_on_led
 	
@@ -335,12 +345,12 @@ _state_alert:
 	sbrc buttons,ISOLATE_SWITCH
 	rjmp _set_state_isolate
 
-	subi last_alert_time_l,1
+/*	subi last_alert_time_l,1
 	sbci last_alert_time_h,0
 	brne _state_alert_jump1
 	rjmp _set_state_evacuate
 
-	_state_alert_jump1:
+	_state_alert_jump1:*/
 
 	ret
 

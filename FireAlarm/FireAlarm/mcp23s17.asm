@@ -16,6 +16,11 @@ mcp_init:
 	ldi temp2,0b0000_0000
 	rcall _mcp_write
 
+	ldi temp0,0x02
+	ldi temp1,0b1000_0000 ;Invert pin 8 input mode
+	ldi temp2,0b0000_0000
+	rcall _mcp_write
+
 	ret
 
 mcp_write_pins:
@@ -26,8 +31,6 @@ mcp_write_pins:
 	ret
 
 mcp_read_pins:
-	mov temp2,temp1
-	mov temp1,temp0
 	ldi temp0,0x12
 	rcall _mcp_read
 	ret
@@ -58,9 +61,8 @@ _mcp_read:
 	rcall spi_send
 	pop temp0
 	rcall spi_send
-	mov temp0,temp1
-	rcall spi_send
-	mov temp0,temp2
+
+	ldi temp0,0xFF
 	rcall spi_send
 
 	sbi PORTB,SLAVE_SELECT
