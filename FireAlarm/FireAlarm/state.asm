@@ -146,8 +146,27 @@ _state_machine_update:
 		cpi loop,BUILDINGS
 	brlt _machine_loop
 
+	cp state,state_write
+	breq state_changed
+
 	;Store the final state
 	mov state,state_write
+
+	cli
+	EEPROM_write:
+	sbic EECR,EEPE
+	rjmp EEPROM_write
+
+	ldi r16,0x10
+	out EEARH,r16
+	out EEARL,r16
+
+	out EEDR,state
+	sbi EECR,EEMPE
+	sbi EECR,EEPE
+	sei
+
+	state_changed:
 
 	;Write led state to MCP
 	ldi temp0,0x00

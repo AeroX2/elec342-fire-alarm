@@ -67,6 +67,37 @@ main:
 
 	clr state
 
+	EEPROM_read:
+	sbic EECR,EEPE
+	rjmp EEPROM_read
+
+	ldi temp0,0x10
+	out EEARH,r16
+	out EEARL,r16
+
+	sbi EECR,EERE
+	in state,EEDR
+	
+	clr loop
+	mov state_read,state
+	_startup_loop:
+		mov temp0,state_read
+		andi temp0,0b0000_0011
+		cpi temp0,ISOLATE
+		brne _skip_led_on
+
+		mov temp0,loop
+		rcall _turn_on_led
+
+		_skip_led_on:
+
+		lsr state_read
+		lsr state_read
+
+		inc loop
+		cpi loop,BUILDINGS
+	brlt _startup_loop
+
 	;Main loop
 	main_loop:
 		rcall state_update
