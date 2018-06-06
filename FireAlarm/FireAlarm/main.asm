@@ -7,8 +7,10 @@
 
 .org 0x0000
 	rjmp main
-;.org 0x000A
-	;rjmp state_interrupt
+.org 0x0008
+	rjmp state_interrupt
+.org 0x000A
+	rjmp state_interrupt
 
 .nolist
 .include "constants.asm"
@@ -83,12 +85,20 @@ main:
 	_startup_loop:
 		mov temp0,state_read
 		andi temp0,0b0000_0011
+
+		cpi temp0,EVACUATE
+		brne _skip_lcd	
+		ldi temp0,LOW(EVACUATE_MESSAGE*2)
+		ldi temp1,HIGH(EVACUATE_MESSAGE*2)
+		rcall lcd_print
+		_skip_lcd:
+
+		;If state loaded from EEPROM is isolate
+		;Turn on the associated LED's
 		cpi temp0,ISOLATE
 		brne _skip_led_on
-
 		mov temp0,loop
 		rcall _turn_on_led
-
 		_skip_led_on:
 
 		lsr state_read

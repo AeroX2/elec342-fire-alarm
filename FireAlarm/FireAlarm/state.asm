@@ -9,22 +9,31 @@ state_init:
 	push temp0
 
 	; Enable interupts on PCMSK2
-	ldi temp0,0b0000_0100
+	ldi temp0,0b0000_0111
 	sts PCICR,temp0
 	
-	; Enable interupts on pins 0 to 3
+	; Enable interupts on pins A3 to A5
+	ldi temp0,0b0000_1110
+	sts PCMSK1,temp0
+
+	; Enable interupts on pins 0 to 4
 	ldi temp0,0b0000_1111
 	sts PCMSK2,temp0
 
+	ldi temp0,0b0000_0111
+	sts PCIFR,temp0
+
 	;Enable global interupts
 	sei
+
+	;Enable sleep mode
+	ldi temp0,0b0001
+	out SMCR,temp0
 
 	pop temp0
 	ret
 
 state_interrupt:
-	;TODO Wake out of sleep
-	;cli
 	reti
 
 _state_scan:
@@ -110,6 +119,14 @@ _state_poll_buttons:
 		inc XL
 		cpi XL,LOW(DEBOUNCE_MEMORY_LOCATION+8*2)
 	brlt debounce_loop
+
+	cpi temp1,0
+	brne no_sleep
+	cpi state,0
+	brne no_sleep
+	sleep
+
+	no_sleep:
 
 	;Fall Through
 _state_machine_update:	
